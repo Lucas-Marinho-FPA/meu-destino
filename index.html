@@ -1,0 +1,951 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#110F2A">
+<link rel="icon" href="data:,">
+<meta name="description" content="Meu Destino — protótipo navegável do copiloto de operação e gestão financeira para motoristas de aplicativo.">
+<meta name="app-version" content="dev">
+<title>Meu Destino — protótipo navegável</title>
+<link rel="stylesheet" href="./assets/fonts/fonts.css">
+<link rel="stylesheet" href="./src/styles.css">
+</head>
+<body>
+<div id="app"></div>
+<noscript><p style="color:#F3F1FF;font-family:sans-serif;padding:24px">O Meu Destino precisa de JavaScript habilitado.</p></noscript>
+<!--
+  Telas do protótipo (template). Sintaxe: {{valor}}, <sc-if>, <sc-for>, onClick, onChange, ref.
+  Interpretado por src/runtime.js. Os valores vêm de Component.renderVals() em src/component.js.
+-->
+<template id="md-template">
+<div class="md" style="width: 390px; height: 844px; background: radial-gradient(90% 40% at 50% -6%, rgba(70,60,190,.55) 0%, rgba(25,24,47,0) 70%), radial-gradient(60% 50% at 0% 100%, rgba(120,60,220,.28) 0%, rgba(25,24,47,0) 70%), radial-gradient(60% 50% at 100% 100%, rgba(120,60,220,.28) 0%, rgba(25,24,47,0) 70%), #110F2A; color: #F3F1FF; font-family: Inter, sans-serif; display: flex; flex-direction: column; overflow: hidden; position: relative">
+
+<header style="padding: 16px 18px 10px; display: flex; align-items: center; gap: 10px; min-width: 0">
+<sc-if value="{{isBack}}" hint-placeholder-val="{{ false }}">
+<button class="ibtn" aria-label="Voltar" onClick="{{goBack}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+<div class="grow" style="display: flex; flex-direction: column; gap: 1px">
+<sc-if value="{{hasBackSub}}" hint-placeholder-val="{{ true }}"><p style="margin: 0; font: 500 14px Inter, sans-serif; color: #D2CCF0">{{backSub}}</p></sc-if>
+<h1 class="ttl">{{backTitle}}</h1>
+</div>
+</sc-if>
+<sc-if value="{{isBrand}}" hint-placeholder-val="{{ true }}">
+<svg width="40" height="46" viewBox="0 0 40 46" aria-hidden="true" style="flex: none"><defs><linearGradient id="mdlg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB547"/><stop offset="1" stop-color="#FF7A1A"/></linearGradient></defs><path d="M20 4c-7 0-12.5 5.4-12.5 12.2C7.5 24.6 20 35 20 35s12.5-10.4 12.5-18.8C32.5 9.4 27 4 20 4z" fill="none" stroke="url(#mdlg)" stroke-width="4"/><circle cx="20" cy="16" r="4.4" fill="none" stroke="url(#mdlg)" stroke-width="3.4"/><path d="M4 39c5-4 10-2.5 14-.5s9 2 15-4" fill="none" stroke="url(#mdlg)" stroke-width="3.4" stroke-linecap="round"/></svg>
+<div class="grow" style="display: flex; flex-direction: column">
+<p class="brandT" style="margin: 0; font: 700 23px 'Space Grotesk', sans-serif; color: #F3F1FF; letter-spacing: -.01em; white-space: nowrap">Meu Destino</p>
+<p class="brandS" style="margin: 0; font: 500 14px Inter, sans-serif; color: #D2CCF0">{{brandSub}}</p>
+</div>
+</sc-if>
+<button class="ibtn" aria-label="{{bellLabel}}" onClick="{{goAlerts}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><sc-if value="{{hasAlerts}}" hint-placeholder-val="{{ true }}"><span style="position: absolute; top: 11px; right: 12px; width: 9px; height: 9px; border-radius: 50%; background: #FF9F43; box-shadow: 0 0 8px #FF9F43"></span></sc-if></button>
+<button class="ibtn" aria-label="Configurações" onClick="{{goCfg}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.5l2 2.6 3.2-.6.8 3.2 3 1.4-1.3 3 1.3 3-3 1.4-.8 3.2-3.2-.6-2 2.6-2-2.6-3.2.6-.8-3.2-3-1.4 1.3-3-1.3-3 3-1.4.8-3.2 3.2.6z"/></svg></button>
+</header>
+
+<div class="scroll" ref="{{scrollRef}}">
+<sc-if value="{{demoBar}}" hint-placeholder-val="{{ false }}"><button onClick="{{goPrefData}}" style="display: flex; align-items: center; gap: 8px; width: 100%; min-height: 40px; padding: 6px 12px; border-radius: 14px; border: 1px dashed rgba(246,196,69,.6); background: rgba(246,196,69,.08); color: #F6C445; font: 500 12.5px Inter, sans-serif; cursor: pointer; text-align: left"><span class="grow">Inclui dados de exemplo · toque para gerenciar</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M9 6l6 6-6 6"/></svg></button></sc-if>
+
+<!-- ================= OPERAÇÃO · BLOQUEADA ================= -->
+<sc-if value="{{isHome}}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{pendingPrev}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="border: 1.5px solid rgba(255,107,125,.65)">
+<span class="chip" style="background: rgba(255,107,125,0.16); color: #FF6B7D; align-self: flex-start">Expediente pendente</span>
+<p class="txt">O expediente anterior não foi encerrado.</p>
+<button class="btn" onClick="{{goRecover}}">Recuperar registro</button>
+</div>
+</sc-if>
+<div class="card hero" style="align-items: center; text-align: center; padding: 28px 20px; gap: 14px">
+<div style="width: 64px; height: 64px; border-radius: 22px; background: rgba(181,138,245,0.16); display: flex; align-items: center; justify-content: center; color: #C9B6F7"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="3"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+<p class="h2" style="font-size: 20px">Operação bloqueada</p>
+<p class="mut">Registre o hodômetro para iniciar o expediente.</p>
+<button class="btn" onClick="{{goCameraStart}}" disabled="{{pendingPrev}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Fotografar hodômetro</button>
+<p class="lbl">Último encerramento: {{lastRecordText}}</p>
+</div>
+<sc-if value="{{hasAlerts}}" hint-placeholder-val="{{ true }}">
+<button class="listbtn" onClick="{{goMaint}}">
+<span style="width: 10px; height: 10px; border-radius: 50%; flex: none; background: #F6C445; box-shadow: 0 0 8px #F6C445"></span>
+<span class="grow" style="display: flex; flex-direction: column; gap: 2px"><span style="font: 600 15px Inter, sans-serif">{{alertsTitle}}</span><span style="font: 400 13px Inter, sans-serif; color: #C9C4EC">{{alertsSub}}</span></span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9C4EC" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M9 6l6 6-6 6"/></svg>
+</button>
+</sc-if>
+<div class="sim">
+<span class="simt">SIMULAÇÃO DO PROTÓTIPO</span>
+<div class="row" style="flex-wrap: wrap; gap: 8px">
+<button class="pill" style="{{scNormalStyle}}" onClick="{{scNormal}}">Início normal</button>
+<button class="pill" style="{{scPendStyle}}" onClick="{{scPend}}">App fechado sem encerrar</button>
+</div>
+</div>
+</sc-if>
+
+<!-- ================= RECUPERAÇÃO ================= -->
+<sc-if value="{{isRecover}}" hint-placeholder-val="{{ false }}">
+<div class="card">
+<div class="sb"><p class="mut">Início</p><p class="num val" style="font-size: 16px">{{recStartText}}</p></div>
+<label class="lbl" for="rec">Hodômetro aproximado no encerramento (km)</label>
+<input id="rec" class="inp" inputmode="numeric" value="{{recoverInput}}" onChange="{{onRecoverInput}}" style="font: 600 22px 'Space Grotesk', sans-serif">
+<sc-if value="{{recoverErr}}" hint-placeholder-val="{{ false }}"><p class="mut" style="color: #FF6B7D">{{recoverErrText}}</p></sc-if>
+<span class="chip" style="background: rgba(246,196,69,0.16); color: #F6C445; align-self: flex-start">Será registrado como estimado</span>
+</div>
+<p class="mut" style="padding: 0 4px">Valor original, valor informado e data da alteração ficam guardados. Os relatórios afetados são recalculados.</p>
+<button class="btn" onClick="{{confirmRecover}}">Salvar estimativa</button>
+</sc-if>
+
+<!-- ================= CÂMERA ================= -->
+<sc-if value="{{isCamera}}" hint-placeholder-val="{{ false }}">
+<div style="height: 460px; border-radius: 26px; background: #0B0A18; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center">
+<div style="width: 280px; max-width: 86%; height: 150px; border-radius: 20px; background: #1C1B2E; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px">
+<span style="font: 500 11px Inter, sans-serif; color: #8E8AB5; letter-spacing: .1em">PAINEL · ODÔMETRO</span>
+<div style="display: flex; gap: 4px">
+<sc-for list="{{camDigits}}" as="d" hint-placeholder-count="6"><span style="width: 30px; height: 44px; border-radius: 6px; background: #000; color: #EDEBFA; font: 600 28px 'Space Grotesk', monospace; display: flex; align-items: center; justify-content: center">{{d}}</span></sc-for>
+</div>
+</div>
+<div style="position: absolute; left: 30px; right: 30px; top: 140px; bottom: 140px; border: 2.5px solid #B58AF5; border-radius: 22px; box-shadow: 0 0 24px rgba(181,138,245,.35)"></div>
+<p style="position: absolute; bottom: 22px; left: 0; right: 0; text-align: center; margin: 0; font: 500 14px Inter, sans-serif; color: #D8D4F2">Enquadre os números do hodômetro</p>
+</div>
+<button class="btn" onClick="{{capture}}" style="min-height: 56px">Capturar e ler</button>
+</sc-if>
+
+<!-- ================= CONFIRMAÇÃO OCR ================= -->
+<sc-if value="{{isConfirm}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="gap: 14px">
+<div class="sb"><p class="lbl">Leitura do OCR</p><span class="chip" style="background: rgba(63,224,160,0.15); color: #3FE0A0">Confiança alta</span></div>
+<label for="odo" style="position: absolute; left: -9999px">Hodômetro (km)</label>
+<input id="odo" class="inp" inputmode="numeric" value="{{odoInput}}" onChange="{{onOdoInput}}" style="font: 600 34px 'Space Grotesk', sans-serif; padding: 14px 16px; text-align: center">
+<sc-if value="{{odoCorrected}}" hint-placeholder-val="{{ false }}"><p class="lbl" style="color: #F6C445">Corrigido manualmente · OCR leu {{ocrText}}</p></sc-if>
+<sc-if value="{{odoErr}}" hint-placeholder-val="{{ false }}"><p class="mut" style="color: #FF6B7D">{{odoErrText}}</p></sc-if>
+<sc-if value="{{odoWarn}}" hint-placeholder-val="{{ false }}"><p class="mut" style="color: #F6C445">{{odoWarnText}}</p></sc-if>
+</div>
+<div class="card" style="gap: 10px">
+<sc-for list="{{confirmFacts}}" as="f" hint-placeholder-count="2"><div class="sb"><p class="mut grow">{{f.k}}</p><p class="num val" style="font-size: 16px">{{f.v}}</p></div></sc-for>
+</div>
+<button class="btn" onClick="{{confirmOdo}}" disabled="{{odoErr}}">{{confirmLabel}}</button>
+</sc-if>
+
+<!-- ================= OPERAÇÃO (mockup v6) ================= -->
+<sc-if value="{{isOp}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 12px 12px 14px; background: linear-gradient(100deg, rgba(63,224,160,.20) 0%, rgba(38,35,70,.92) 62%); border: 1.5px solid rgba(63,224,160,.6)">
+<div style="width: 46px; height: 46px; border-radius: 50%; flex: none; background: radial-gradient(circle at 35% 30%, #2FBF71, #148A4C); display: flex; align-items: center; justify-content: center; color: #BFF5DA"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11M3 11h18v6H3zM6 17v2M18 17v2"/></svg></div>
+<div class="grow" style="display: flex; flex-direction: column; gap: 2px; min-width: 150px">
+<p style="margin: 0; font: 700 18px 'Space Grotesk', sans-serif; color: #3FE0A0; white-space: nowrap">Em expediente</p>
+<p style="margin: 0; font: 400 13px Inter, sans-serif; color: #D2CCF0">{{shiftTimeText}}</p>
+</div>
+<button onClick="{{goClose}}" style="flex: none; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 14px; border: 1.5px solid #C9B6F7; background: rgba(25,24,47,.6); color: #F3F1FF; font: 600 14px Inter, sans-serif; cursor: pointer"><span style="width: 12px; height: 12px; border-radius: 3px; background: #F3F1FF"></span>Encerrar</button>
+</div>
+<div class="card hero" style="align-items: center; padding: 20px 22px 22px; gap: 14px">
+<p style="margin: 0; font: 600 15px Inter, sans-serif; color: #D2B8FA">Próxima corrida</p>
+<p class="num" style="font-size: 40px; line-height: 1; text-align: center; color: {{reqColor}}">{{reqText}}</p>
+<div style="width: 100%; height: 16px; border-radius: 999px; background: rgba(74,69,114,.55); overflow: hidden"><div style="{{barStyle}}"></div></div>
+<sc-if value="{{hasOpNote}}" hint-placeholder-val="{{ false }}"><p class="lbl" style="text-align: center">{{opNote}}</p></sc-if>
+</div>
+<div class="row" style="gap: 10px; padding: 2px 4px 0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F3F1FF" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M14 3c3.3 0 6 1.1 6 2.5S17.3 8 14 8s-6-1.1-6-2.5S10.7 3 14 3zM8 5.5v4c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-4M10 12.3C9.7 12.1 9.4 12 9 12c-3.3 0-6 1.1-6 2.5S5.7 17 9 17s6-1.1 6-2.5M3 14.5v4C3 19.9 5.7 21 9 21s6-1.1 6-2.5v-4"/></svg><p class="h2" style="font-size: 19px">Receitas do expediente</p></div>
+<div class="grid2">
+<sc-for list="{{opTiles}}" as="t" hint-placeholder-count="4">
+<div style="{{t.box}}"><span style="{{t.ic}}"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{t.path}}"/></svg></span><div class="grow" style="display: flex; flex-direction: column; gap: 2px"><span style="font: 500 14px Inter, sans-serif; color: #E4DEFA">{{t.k}}</span><span class="num" style="font-size: 20px; white-space: nowrap">{{t.v}}</span></div></div>
+</sc-for>
+</div>
+<p class="lbl" style="padding: 0 4px">{{opHint}}</p>
+<button class="btn" onClick="{{goNewRide}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M12 5v14M5 12h14"/></svg>Registrar corrida</button>
+<div class="sim">
+<span class="simt">SIMULAÇÃO · APP DA PLATAFORMA</span>
+<p class="lbl">Horários vêm do relógio do aparelho; o tempo de operação avança 20 min por oferta só para simular. Aceite e conclusão são sempre informados por você.</p>
+<button class="btn2" onClick="{{loadDemo}}" disabled="{{demoDisabled}}" style="min-height: 44px; font-size: 13px">{{demoLabel}}</button>
+<button class="btn" onClick="{{nextOffer}}" disabled="{{noMoreOffers}}" style="box-shadow: none">{{nextOfferLabel}}</button>
+<div class="row" style="flex-wrap: wrap"><button class="pill" style="{{onStyle}}" onClick="{{setOnline}}">Online</button><button class="pill" style="{{offStyle}}" onClick="{{setOffline}}">Sem internet</button></div>
+</div>
+</sc-if>
+
+<!-- ================= SIMULAÇÃO DA CORRIDA ================= -->
+<sc-if value="{{isOfferSim}}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{sim.ok}}" hint-placeholder-val="{{ true }}">
+<div class="card" style="gap: 0; padding: 6px 16px 16px">
+<div class="row" style="gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(181,138,245,.18)"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#F3F1FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11M3 11h18v6H3zM6 17v2M18 17v2"/></svg><div class="grow"><p class="h2" style="font-size: 20px">Análise da oferta</p><p class="lbl">{{sim.time}}</p></div></div>
+<div class="sb" style="min-height: 46px; border-bottom: 1px solid rgba(181,138,245,.12)"><p class="txt grow">Valor da oferta</p><p class="num val" style="font-size: 17px">{{sim.valueText}}</p></div>
+<div class="sb" style="min-height: 46px; border-bottom: 1px solid rgba(181,138,245,.12)"><p class="txt grow">Distância total (até + viagem)</p><p class="num val" style="font-size: 17px">{{sim.kmText}}</p></div>
+<div class="sb" style="min-height: 46px"><p class="txt grow">Tempo estimado total</p><p class="num val" style="font-size: 17px">{{sim.minText}}</p></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1.5px solid rgba(181,138,245,.4); border-radius: 18px; margin-top: 6px; background: rgba(17,15,42,.4)">
+<div style="padding: 12px 14px; border-right: 1px solid rgba(181,138,245,.3); display: flex; flex-direction: column; gap: 4px; min-width: 0"><span class="lbl" style="font-size: 14px">Impacto na média</span><span class="num" style="font-size: 22px; white-space: nowrap; color: {{sim.impColor}}">{{sim.impText}}</span></div>
+<div style="padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; min-width: 0"><span class="lbl" style="font-size: 14px">Nova média</span><span class="num" style="font-size: 22px; white-space: nowrap">{{sim.projText}}<span style="font-size: 14px; color: #C9C4EC">/km</span></span></div>
+</div>
+<div class="sb" style="min-height: 52px; margin-top: 4px"><div class="row grow"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F3F1FF" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 7v5l3.5 2"/></svg><p class="txt">Ganho estimado por hora</p></div><p class="num val" style="font-size: 17px">{{sim.rphText}}</p></div>
+</div>
+<div style="{{sim.badge}}"><span style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: {{sim.c}}; color: {{sim.fg}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{sim.icon}}"/></svg></span>{{sim.label}}</div>
+<sc-if value="{{sim.hasReasons}}" hint-placeholder-val="{{ false }}"><div class="row" style="justify-content: center; flex-wrap: wrap; gap: 14px"><sc-for list="{{sim.reasons}}" as="r" hint-placeholder-count="2"><span class="row" style="gap: 6px; font: 600 14px Inter, sans-serif; color: {{sim.c}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{r.path}}"/></svg>{{r.n}}</span></sc-for></div></sc-if>
+<div class="card" style="flex-direction: row; align-items: center; gap: 12px; padding: 14px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F3F1FF" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 11v5M12 8v.5"/></svg><p class="mut grow" style="font-size: 14px">A análise é uma simulação. A média só muda quando a corrida é concluída com o valor recebido.</p></div>
+<button class="btn" onClick="{{closeSim}}">Fechar</button>
+</sc-if>
+</sc-if>
+
+<!-- ================= CONFERÊNCIA DO EXPEDIENTE ================= -->
+<sc-if value="{{isClose}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="gap: 6px">
+<p class="txt" style="font-weight: 600">Confira o seu dia antes de fechar</p>
+<p class="mut">Os ganhos já foram calculados durante o expediente. Corrija o que estiver diferente e confirme para consolidar no histórico.</p>
+</div>
+<div class="card" style="gap: 0; padding: 4px 16px">
+<sc-for list="{{closeRows}}" as="x" hint-placeholder-count="5"><div class="lrow"><p class="txt grow">{{x.k}}</p><p class="num val" style="font-size: 15px">{{x.v}}</p></div></sc-for>
+</div>
+<p class="sec">Registros do dia</p>
+<sc-for list="{{closeItems}}" as="c" hint-placeholder-count="2">
+<div class="card" style="gap: 10px">
+<button onClick="{{c.open}}" style="display: flex; flex-direction: column; gap: 6px; padding: 0; border: 0; background: transparent; color: #F3F1FF; text-align: left; cursor: pointer; width: 100%">
+<span class="sb" style="align-items: flex-start; width: 100%"><span class="txt grow" style="font-weight: 600">{{c.t}}</span><span class="num val" style="font-size: 16px">{{c.v}}</span></span>
+<span class="row" style="flex-wrap: wrap; gap: 6px"><sc-if value="{{c.isDemo}}" hint-placeholder-val="{{ false }}"><span class="chip" style="background: rgba(246,196,69,.14); color: #F6C445">exemplo</span></sc-if><span class="lbl">{{c.s}}</span></span>
+</button>
+<div class="row" style="flex-wrap: wrap; gap: 8px"><sc-for list="{{c.acts}}" as="a" hint-placeholder-count="2"><button style="{{a.style}}" onClick="{{a.go}}">{{a.n}}</button></sc-for></div>
+</div>
+</sc-for>
+<sc-if value="{{closeEmpty}}" hint-placeholder-val="{{ false }}"><div class="card"><p class="mut">Nenhuma corrida registrada neste expediente.</p></div></sc-if>
+<button class="btn2" onClick="{{goNewRide}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M12 5v14M5 12h14"/></svg>Registrar corrida esquecida</button>
+<p class="lbl" style="padding: 0 2px">{{closeOffers}}</p>
+<button class="btn" onClick="{{goCameraFinal}}">{{closeBtn}}</button>
+</sc-if>
+
+<!-- ================= EXPEDIENTE ENCERRADO ================= -->
+<sc-if value="{{isClosed}}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{cl.ok}}" hint-placeholder-val="{{ true }}">
+<div class="card" style="flex-direction: row; align-items: center; gap: 14px; padding: 16px">
+<div style="width: 60px; height: 60px; border-radius: 50%; flex: none; border: 3px solid #3FE0A0; display: flex; align-items: center; justify-content: center; color: #3FE0A0; box-shadow: 0 0 18px rgba(63,224,160,.35)"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+<div class="grow"><p class="h2" style="font-size: 22px">Expediente encerrado</p><p class="mut" style="font-size: 14px">{{cl.when}}</p></div>
+</div>
+<div class="card hero" style="flex-direction: row; align-items: stretch; gap: 0; padding: 18px 14px 18px 18px">
+<div class="grow" style="display: flex; flex-direction: column; justify-content: center; gap: 6px; padding-right: 10px">
+<p style="margin: 0; font: 600 16px Inter, sans-serif; color: #E4DEFA">Receita do dia</p>
+<p class="num fitL" style="font-size: 32px; color: #3FE0A0; white-space: nowrap">{{cl.rec}}</p>
+</div>
+<div style="width: 1px; background: rgba(181,138,245,.3)"></div>
+<div style="flex: none; display: flex; flex-direction: column; justify-content: center; gap: 10px; padding-left: 12px">
+<div class="row" style="gap: 8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4FB3FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11M3 11h18v6H3zM6 17v2M18 17v2"/></svg><span style="font: 600 15px Inter, sans-serif; white-space: nowrap">{{cl.rides}}</span></div>
+<div class="row" style="gap: 8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F3F1FF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 20L9 4M19 20L15 4M12 6v2M12 11v2M12 16v2"/></svg><span style="font: 600 15px Inter, sans-serif; white-space: nowrap">{{cl.km}}</span></div>
+<div class="row" style="gap: 8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F3F1FF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 7v5l3.5 2"/></svg><span style="font: 600 15px Inter, sans-serif; white-space: nowrap">{{cl.time}}</span></div>
+</div>
+</div>
+<div class="grid2">
+<sc-for list="{{cl.tiles}}" as="t" hint-placeholder-count="4"><div style="{{t.box}}"><span style="{{t.ic}}"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{t.path}}"/></svg></span><div class="grow" style="display: flex; flex-direction: column; gap: 1px"><span class="num" style="font-size: 17px; white-space: nowrap">{{t.v}}</span><span style="font: 500 12px Inter, sans-serif; color: #E4DEFA">{{t.k}}</span></div></div></sc-for>
+</div>
+<div class="card" style="flex-direction: row; align-items: center; gap: 12px; padding: 14px 16px; border-color: rgba(181,138,245,.45)">
+<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FF9F43" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M12 3a9 9 0 1 0 9 9M12 7a5 5 0 1 0 5 5M12 11a1 1 0 1 0 1 1M12 12l7-7M16 5h3v3"/></svg>
+<div class="grow"><p class="txt" style="font-weight: 600">{{cl.meta}}</p><p class="mut" style="font-size: 14px">Resultado: <span style="font-weight: 700; color: {{cl.diffColor}}">{{cl.diff}}</span><span>{{cl.diffWord}}</span></p></div>
+</div>
+<button class="btn" onClick="{{goFinDetail}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 12h6M9 16h6"/></svg>Ver detalhamento</button>
+<button class="btn2" onClick="{{newShift}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l5 3.5-5 3.5z"/></svg>Novo expediente</button>
+</sc-if>
+</sc-if>
+
+<!-- ================= FINANCEIRO ================= -->
+<sc-if value="{{isFin}}" hint-placeholder-val="{{ false }}">
+<div class="tabs" role="tablist" aria-label="Seções do financeiro">
+<sc-for list="{{finTabs}}" as="f" hint-placeholder-count="4"><button role="tab" style="{{f.style}}" onClick="{{f.go}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="{{f.path}}"/></svg>{{f.n}}</button></sc-for>
+</div>
+
+<sc-if value="{{ftFin}}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{finNone}}" hint-placeholder-val="{{ false }}"><div class="card"><p class="mut">Nenhum expediente hoje. Os meses anteriores estão em Resultados.</p></div></sc-if>
+<sc-if value="{{finLive}}" hint-placeholder-val="{{ false }}"><div class="card" style="gap: 6px; padding: 14px 16px; border-color: rgba(79,179,255,.55)"><p class="row" style="gap: 8px; margin: 0; font: 600 15px Inter, sans-serif; color: #4FB3FF"><span style="width: 9px; height: 9px; border-radius: 50%; background: #4FB3FF; flex: none"></span>Expediente em andamento</p><p class="mut" style="font-size: 13.5px">{{finLiveText}}</p></div></sc-if>
+<sc-if value="{{finDone}}" hint-placeholder-val="{{ false }}"><div class="card" style="gap: 6px; padding: 14px 16px; border-color: rgba(63,224,160,.5)"><p class="row" style="gap: 8px; margin: 0; font: 600 15px Inter, sans-serif; color: #3FE0A0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M5 12l5 5L20 7"/></svg>Fechado e conferido</p><p class="mut" style="font-size: 13.5px">{{finDoneText}}</p></div></sc-if>
+<sc-if value="{{finHas}}" hint-placeholder-val="{{ true }}">
+<div class="card hero" style="flex-direction: row; align-items: stretch; gap: 0; padding: 18px 14px 18px 16px">
+<div class="grow" style="display: flex; flex-direction: column; gap: 6px; padding-right: 10px">
+<p style="margin: 0; font: 600 14px Inter, sans-serif; color: #E4DEFA">{{finResLabel}}</p>
+<p class="num fitL" style="font-size: 32px; line-height: 1.05; color: #3FE0A0; white-space: nowrap">{{finRecText}}</p>
+<div class="row" style="gap: 6px; justify-content: space-between"><p style="margin: 0; font: 500 15px Inter, sans-serif; color: #D2CCF0">Receita total</p><sc-if value="{{finCanOpen}}" hint-placeholder-val="{{ true }}"><button aria-label="Abrir DRE do expediente" onClick="{{openDre}}" style="width: 44px; height: 44px; margin: -10px -6px -10px 0; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; flex: none"><span style="width: 28px; height: 28px; border-radius: 50%; background: rgba(181,138,245,.3); color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></button></sc-if></div>
+</div>
+<div style="width: 1px; background: rgba(181,138,245,.3)"></div>
+<div style="flex: none; display: flex; flex-direction: column; justify-content: center; gap: 12px; padding-left: 12px">
+<sc-for list="{{finSide}}" as="r" hint-placeholder-count="3"><div class="row" style="gap: 8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F3F1FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="{{r.path}}"/></svg><span style="font: 600 15px 'Space Grotesk', sans-serif; white-space: nowrap">{{r.v}}<span style="font: 400 13px Inter, sans-serif; color: #D2CCF0; margin-left: 4px">{{r.u}}</span></span></div></sc-for>
+</div>
+</div>
+<div class="grid3">
+<sc-for list="{{finInd}}" as="r" hint-placeholder-count="3"><div style="{{r.box}}"><span class="tic" style="{{r.ic}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{r.path}}"/></svg></span><div class="grow" style="display: flex; flex-direction: column; gap: 1px"><span style="font: 500 11px Inter, sans-serif; color: #E4DEFA; white-space: nowrap">{{r.k}}</span><span class="num" style="font-size: 14px; white-space: nowrap">{{r.v}}</span></div></div></sc-for>
+</div>
+<sc-if value="{{finKmNote}}" hint-placeholder-val="{{ false }}"><p class="lbl" style="padding: 0 4px">{{finKmNote}}</p></sc-if>
+<div class="card" style="gap: 0; padding: 6px 16px 12px">
+<sc-for list="{{fr.rows}}" as="x" hint-placeholder-count="3"><div class="lrow"><p class="txt grow">{{x.k}}</p><p class="num val" style="font-size: 15px">{{x.v}}</p></div></sc-for>
+<div class="sb" style="padding-top: 10px"><p class="txt grow" style="font-weight: 700">{{fr.title}}</p><p class="num val" style="font-size: 18px; color: {{fr.c}}">{{fr.v}}</p></div>
+<p class="lbl" style="padding-top: 6px">{{fr.note}}</p>
+<button class="lnk" onClick="{{openDre}}" style="align-self: flex-start; padding-top: 6px">Ver DRE completa</button>
+</div>
+<button class="listbtn" onClick="{{goRides}}">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F3F1FF" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M4 20h16M7 20v-6M11 20V8M15 20v-9M19 20V5"/></svg>
+<span class="grow" style="font: 600 17px 'Space Grotesk', sans-serif">Detalhamento das corridas</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9C4EC" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M9 6l6 6-6 6"/></svg>
+</button>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{ftCost}}" hint-placeholder-val="{{ false }}">
+<div class="card hero" style="gap: 14px">
+<div class="sb"><p style="margin: 0; font: 600 15px Inter, sans-serif; color: #E4DEFA" class="grow">Custos do mês (estimado)</p><button onClick="{{toggleCostMonth}}" class="val" style="display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border-radius: 14px; border: 1px solid rgba(181,138,245,.4); background: rgba(17,15,42,.5); color: #F3F1FF; font: 500 13px Inter, sans-serif; cursor: pointer">{{costMonthLabel}}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>
+<div class="sb" style="align-items: flex-end; flex-wrap: wrap"><p class="num" style="font-size: 30px; white-space: nowrap">{{costTotal}}</p><p class="num val" style="font-size: 16px; color: #F6C445">{{costPerKm}}</p></div>
+<div style="display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: rgba(74,69,114,.55)"><sc-for list="{{costParts}}" as="p" hint-placeholder-count="3"><div style="{{p.seg}}"></div></sc-for></div>
+</div>
+<sc-for list="{{costCards}}" as="x" hint-placeholder-count="3">
+<button class="listbtn" onClick="{{x.go}}"><span style="{{x.ib}}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{x.path}}"/></svg></span><span class="grow" style="display: flex; flex-direction: column; gap: 2px"><span style="font: 600 16px Inter, sans-serif">{{x.t}}</span><span style="font: 400 13px Inter, sans-serif; color: #C9C4EC">{{x.s}}</span></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9C4EC" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M9 6l6 6-6 6"/></svg></button>
+</sc-for>
+</sc-if>
+
+<sc-if value="{{ftRes}}" hint-placeholder-val="{{ false }}">
+<div class="tabs" role="tablist" aria-label="Mês"><sc-for list="{{resMonths}}" as="m" hint-placeholder-count="2"><button role="tab" style="{{m.style}}" onClick="{{m.go}}">{{m.n}}</button></sc-for></div>
+<div class="card hero" style="gap: 14px">
+<p style="margin: 0; font: 600 15px Inter, sans-serif; color: #E4DEFA">Resultado operacional do mês</p>
+<p class="num" style="font-size: 34px; line-height: 1; color: {{resColor}}; white-space: nowrap">{{resValue}}</p>
+<div class="grid3" style="gap: 8px">
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span class="lbl">Receita bruta</span><span class="num" style="font-size: 15px; white-space: nowrap">{{resRec}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span class="lbl">Custos</span><span class="num" style="font-size: 15px; white-space: nowrap">{{resCost}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span class="lbl">Quilometragem</span><span class="num" style="font-size: 15px; white-space: nowrap">{{resKm}}</span></div>
+</div>
+<sc-if value="{{resPartial}}" hint-placeholder-val="{{ false }}"><p class="lbl" style="color: #F6C445">Mês parcial: os custos fixos entram pelo valor mensal integral.</p></sc-if>
+</div>
+<div class="card" style="gap: 0; padding: 6px 16px">
+<sc-for list="{{resGroups}}" as="g" hint-placeholder-count="6">
+<div style="border-top: 1px solid rgba(181,138,245,.12)">
+<button onClick="{{g.toggle}}" aria-label="Expandir {{g.t}}" style="display: flex; align-items: center; gap: 10px; width: 100%; min-height: 54px; padding: 0; border: 0; background: transparent; color: #F3F1FF; cursor: pointer; text-align: left"><span style="{{g.dot}}"></span><span class="grow" style="font: 600 15px Inter, sans-serif">{{g.t}}</span><span class="num val" style="font-size: 15px">{{g.v}}</span><span style="width: 24px; height: 24px; border-radius: 50%; flex: none; background: rgba(181,138,245,.22); display: flex; align-items: center; justify-content: center; font: 700 15px Inter, sans-serif">{{g.sign}}</span></button>
+<sc-if value="{{g.open}}" hint-placeholder-val="{{ false }}"><div style="display: flex; flex-direction: column; gap: 6px; padding: 0 0 12px 20px"><sc-for list="{{g.rows}}" as="r" hint-placeholder-count="2"><div class="sb"><p class="mut grow">{{r.k}}</p><p class="num val" style="font-size: 14px; color: #E4DEFA">{{r.v}}</p></div></sc-for></div></sc-if>
+</div>
+</sc-for>
+</div>
+<div class="card">
+<p class="h2">Comparativo mensal · resultado</p>
+<div style="display: flex; align-items: flex-end; gap: 10px; height: 140px; padding-top: 8px">
+<sc-for list="{{monthBars}}" as="b" hint-placeholder-count="4"><div style="flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end"><span style="font: 600 10px Inter, sans-serif; color: #E4DEFA; white-space: nowrap">{{b.v}}</span><div style="width: 100%; border-radius: 8px 8px 4px 4px; background: {{b.c}}; height: {{b.h}}"></div><span class="lbl">{{b.l}}</span></div></sc-for>
+</div>
+<p class="lbl">* mês atual parcial</p>
+</div>
+</sc-if>
+
+<sc-if value="{{ftMeta}}" hint-placeholder-val="{{ false }}">
+<div class="card hero" style="gap: 14px">
+<div class="sb"><p class="mut grow" style="font-size: 15px">Meta de receita por km</p><p class="num val" style="font-size: 24px">{{metaText}}</p></div>
+<div class="sb"><p class="mut grow" style="font-size: 15px">{{mtLabel}}</p><p class="num val" style="font-size: 24px; color: {{mtColor}}">{{mtText}}</p></div>
+<div style="height: 14px; border-radius: 999px; background: rgba(74,69,114,.55); overflow: hidden"><div style="{{mtBar}}"></div></div>
+<p class="lbl">{{mtNote}}</p>
+</div>
+<button class="btn2" onClick="{{goCfgMeta}}">Ajustar metas em Configurações</button>
+</sc-if>
+</sc-if>
+
+<!-- ================= DETALHAMENTO DAS CORRIDAS ================= -->
+<sc-if value="{{isRides}}" hint-placeholder-val="{{ false }}">
+<p class="lbl" style="padding: 0 2px">{{ridesNote}}</p>
+<sc-if value="{{canAddRide}}" hint-placeholder-val="{{ true }}"><button class="btn2" onClick="{{goNewRideFin}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M12 5v14M5 12h14"/></svg>Registrar corrida</button></sc-if>
+<sc-for list="{{rideRows}}" as="r" hint-placeholder-count="3">
+<button class="card" onClick="{{r.open}}" style="gap: 8px; padding: 14px 16px; width: 100%; color: #F3F1FF; text-align: left; cursor: pointer">
+<span class="sb" style="align-items: flex-start; width: 100%"><span class="txt grow" style="font-weight: 600">{{r.t}}</span><span class="num val" style="font-size: 16px">{{r.v}}</span></span>
+<span class="row" style="flex-wrap: wrap; gap: 6px"><span class="chip" style="{{r.st}}">{{r.sl}}</span><sc-if value="{{r.isDemo}}" hint-placeholder-val="{{ false }}"><span class="chip" style="background: rgba(246,196,69,.14); color: #F6C445">exemplo</span></sc-if></span>
+<span class="lbl">{{r.s}}</span>
+</button>
+</sc-for>
+<sc-if value="{{ridesEmpty}}" hint-placeholder-val="{{ false }}"><div class="card"><p class="mut">Nenhuma corrida registrada hoje.</p></div></sc-if>
+</sc-if>
+
+<!-- ================= CORRIDA: DETALHE ================= -->
+<sc-if value="{{isRide}}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{rd.ok}}" hint-placeholder-val="{{ true }}">
+<div class="card hero" style="gap: 10px">
+<p class="h2" style="font-size: 18px">{{rd.title}}</p>
+<div class="row" style="flex-wrap: wrap; gap: 6px"><span class="chip" style="{{rd.st}}">{{rd.sl}}</span><sc-if value="{{rd.isDemo}}" hint-placeholder-val="{{ false }}"><span class="chip" style="background: rgba(246,196,69,.14); color: #F6C445">exemplo</span></sc-if></div>
+<p class="lbl">{{rd.note}}</p>
+</div>
+<div class="card" style="gap: 0; padding: 6px 16px">
+<sc-for list="{{rd.rows}}" as="x" hint-placeholder-count="6"><div class="lrow"><p class="txt grow">{{x.k}}</p><p class="num val" style="font-size: 15px">{{x.v}}</p></div></sc-for>
+</div>
+<div class="row" style="flex-wrap: wrap; gap: 8px"><sc-for list="{{rd.acts}}" as="a" hint-placeholder-count="2"><button style="{{a.style}}" onClick="{{a.go}}">{{a.n}}</button></sc-for></div>
+<sc-if value="{{rd.hasTrail}}" hint-placeholder-val="{{ true }}">
+<p class="sec">Trilha de alterações</p>
+<div class="card" style="gap: 8px"><sc-for list="{{rd.trail}}" as="e" hint-placeholder-count="2"><div style="display: flex; flex-direction: column; gap: 2px"><p class="lbl">{{e.t}}</p><p class="mut" style="font-size: 14px">{{e.s}}</p></div></sc-for></div>
+</sc-if>
+</sc-if>
+</sc-if>
+
+<!-- ================= REGISTRO: FORMULÁRIO ================= -->
+<sc-if value="{{isRideForm}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="gap: 12px">
+<p class="h2" style="font-size: 18px">{{rfTitle}}</p>
+<div class="row" style="flex-wrap: wrap; gap: 6px"><sc-for list="{{rfKinds}}" as="k" hint-placeholder-count="2"><button class="pill" style="{{k.style}}" onClick="{{k.pick}}">{{k.n}}</button></sc-for></div>
+<sc-if value="{{rfConc}}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{rfHasOffers}}" hint-placeholder-val="{{ false }}">
+<p class="lbl">Preencher com uma oferta recebida (opcional)</p>
+<div class="row" style="flex-wrap: wrap; gap: 6px"><sc-for list="{{rfOffers}}" as="o" hint-placeholder-count="2"><button style="{{o.style}}" onClick="{{o.pick}}"><span>{{o.t}}</span><span class="lbl">{{o.sub}}</span></button></sc-for></div>
+</sc-if>
+<sc-if value="{{rfSuggested}}" hint-placeholder-val="{{ false }}"><p class="lbl" style="color: #F6C445">Dados da oferta: confira e ajuste ao que você realmente recebeu.</p></sc-if>
+<label class="lbl" for="rfv">Valor recebido (R$)</label><input id="rfv" class="inp" inputmode="decimal" placeholder="0,00" value="{{rfRecv}}" onChange="{{onRfRecv}}">
+<div class="grid2">
+<div><label class="lbl" for="rfk">Km da corrida</label><input id="rfk" class="inp" inputmode="decimal" placeholder="0,0" value="{{rfKm}}" onChange="{{onRfKm}}"></div>
+<div><label class="lbl" for="rfm">Duração (min, opcional)</label><input id="rfm" class="inp" inputmode="numeric" value="{{rfMin}}" onChange="{{onRfMin}}"></div>
+</div>
+<p class="lbl">Km até o passageiro + viagem. Entra nos ganhos e nas médias na hora.</p>
+</sc-if>
+<sc-if value="{{rfCanc}}" hint-placeholder-val="{{ false }}">
+<label class="lbl" for="rff">Taxa de cancelamento recebida (R$)</label><input id="rff" class="inp" inputmode="decimal" placeholder="0,00" value="{{rfFee}}" onChange="{{onRfFee}}">
+<p class="lbl">Entra uma única vez como receita de taxas; não conta como corrida.</p>
+</sc-if>
+</div>
+<sc-if value="{{rfHasErr}}" hint-placeholder-val="{{ false }}"><p class="mut" style="color: #FF6B7D; padding: 0 2px">{{rfErr}}</p></sc-if>
+<button class="btn" onClick="{{saveRf}}">Salvar</button>
+</sc-if>
+
+<sc-if value="{{isDre}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="gap: 6px">
+<sc-for list="{{dreRows}}" as="r" hint-placeholder-count="8"><div style="{{r.wrap}}"><p style="{{r.ks}}">{{r.k}}</p><p style="{{r.vs}}">{{r.v}}</p></div></sc-for>
+</div>
+<p class="lbl" style="padding: 0 2px">Resultado gerencial estimado; não é lucro contábil.</p>
+</sc-if>
+
+<!-- ================= HISTÓRICO / EVOLUTIVOS ================= -->
+<sc-if value="{{isHist}}" hint-placeholder-val="{{ false }}">
+<div class="tabs" role="tablist" aria-label="Histórico"><sc-for list="{{hSegs}}" as="h" hint-placeholder-count="3"><button role="tab" style="{{h.style}}" onClick="{{h.go}}">{{h.n}}</button></sc-for></div>
+
+<sc-if value="{{hsEvo}}" hint-placeholder-val="{{ true }}">
+<div style="position: relative">
+<button onClick="{{toggleEvo}}" aria-label="Escolher indicador" style="display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 0 16px; border-radius: 18px; border: 1.5px solid rgba(181,138,245,.5); background: rgba(33,30,64,.9); color: #F3F1FF; cursor: pointer; text-align: left"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F3F1FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M3 20h18M5 16l4-5 4 3 6-7M15 7h4v4"/></svg><span class="grow" style="font: 600 16px Inter, sans-serif">{{evoName}}</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M6 9l6 6 6-6"/></svg></button>
+<sc-if value="{{evoOpen}}" hint-placeholder-val="{{ false }}">
+<div role="listbox" style="margin-top: 8px; padding: 8px; border-radius: 18px; background: #221E45; border: 1px solid rgba(181,138,245,.35); box-shadow: 0 14px 30px rgba(0,0,0,.45); display: flex; flex-direction: column; gap: 2px">
+<sc-for list="{{evoGroups}}" as="g" hint-placeholder-count="3"><p class="lbl" style="padding: 10px 14px 4px; letter-spacing: .06em; text-transform: uppercase; font-size: 11px">{{g.g}}</p><sc-for list="{{g.items}}" as="i" hint-placeholder-count="4"><button role="option" style="{{i.style}}" onClick="{{i.pick}}">{{i.n}}</button></sc-for></sc-for>
+</div>
+</sc-if>
+</div>
+<div class="tabs per" role="tablist" aria-label="Período"><sc-for list="{{evoPers}}" as="p" hint-placeholder-count="6"><button role="tab" style="{{p.style}}" onClick="{{p.go}}">{{p.n}}</button></sc-for></div>
+<sc-if value="{{evoNA}}" hint-placeholder-val="{{ false }}"><div class="card"><p class="mut">{{evoNAText}}</p></div></sc-if>
+<sc-if value="{{evoShowChart}}" hint-placeholder-val="{{ true }}">
+<div class="card hero" style="gap: 8px">
+<p class="lbl">{{evoCurLabel}}</p>
+<div class="sb" style="flex-wrap: wrap; row-gap: 6px"><p class="num fitL" style="font-size: 30px; white-space: nowrap">{{evoCurText}}</p><sc-if value="{{hasEvoDelta}}" hint-placeholder-val="{{ true }}"><span style="{{evoDeltaStyle}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{evoArrow}}"/></svg>{{evoDeltaText}}</span></sc-if></div>
+<p class="mut">{{evoPrevText}}</p>
+</div>
+<div class="card" style="gap: 10px; padding: 14px 12px">
+<svg viewBox="0 0 320 170" style="width: 100%; height: auto; display: block; overflow: visible" role="img" aria-label="Evolução de {{evoName}}">
+<sc-for list="{{evoGrid}}" as="g" hint-placeholder-count="3"><line x1="0" x2="320" y1="{{g.y}}" y2="{{g.y}}" stroke="rgba(181,138,245,.14)" stroke-dasharray="3 5"/><text x="2" y="{{g.y}}" dy="-3" fill="#9E98C8" style="font: 500 9px Inter, sans-serif">{{g.l}}</text></sc-for>
+<sc-for list="{{evoHits}}" as="h" hint-placeholder-count="6"><rect x="{{h.x}}" y="0" width="{{h.w}}" height="170" fill="transparent" style="cursor: pointer" onClick="{{h.pick}}"/></sc-for>
+<sc-for list="{{evoLines}}" as="l" hint-placeholder-count="5"><path d="{{l.d}}" fill="none" stroke="transparent" stroke-width="16" style="cursor: pointer" onClick="{{l.toggle}}"/><path d="{{l.d}}" fill="none" stroke-linecap="round" stroke-linejoin="round" style="{{l.stroke}}; pointer-events: none"/></sc-for>
+<sc-for list="{{evoLines}}" as="l" hint-placeholder-count="5"><sc-for list="{{l.dots}}" as="d" hint-placeholder-count="6"><circle cx="{{d.cx}}" cy="{{d.cy}}" r="11" fill="transparent" style="cursor: pointer" onClick="{{d.pick}}"/><circle cx="{{d.cx}}" cy="{{d.cy}}" r="{{d.r}}" style="{{d.st}}; pointer-events: none"/></sc-for></sc-for>
+</svg>
+<div style="display: flex; justify-content: space-between; gap: 2px; padding: 0 2px"><sc-for list="{{evoLabels}}" as="l" hint-placeholder-count="6"><span class="lbl" style="font-size: 10.5px; white-space: nowrap">{{l.l}}</span></sc-for></div>
+<sc-if value="{{evoMulti}}" hint-placeholder-val="{{ true }}"><div class="row" style="flex-wrap: wrap; gap: 6px"><sc-for list="{{evoLines}}" as="l" hint-placeholder-count="5"><button style="{{l.chip}}" onClick="{{l.toggle}}" aria-label="Destacar {{l.n}}"><span style="{{l.dot}}"></span>{{l.n}}</button></sc-for></div></sc-if>
+<p class="lbl">{{evoHint}}</p>
+</div>
+<sc-if value="{{evoHasPt}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="gap: 4px; border-color: rgba(181,138,245,.5)">
+<div class="sb"><p class="h2 grow" style="font-size: 16px">{{evoPtTitle}}</p><button class="kebab" aria-label="Fechar valores do período" onClick="{{evoPtClose}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+<sc-for list="{{evoPtRows}}" as="r" hint-placeholder-count="5"><div style="{{r.st}}"><span style="{{r.dot}}"></span><p class="txt grow" style="font-size: 14px">{{r.n}}</p><p class="num val" style="font-size: 15px">{{r.v}}</p></div></sc-for>
+</div>
+</sc-if>
+<p class="lbl" style="padding: 0 2px">{{evoNote}}{{evoDemoNote}}</p>
+</sc-if>
+<sc-if value="{{evoIsList}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="gap: 0">
+<sc-for list="{{evoList}}" as="f" hint-placeholder-count="5"><div class="lrow"><div class="grow"><p class="txt" style="font-weight: 600; font-size: 14px">{{f.top}}</p><p class="lbl">{{f.sub}}</p></div><div class="val" style="text-align: right"><p class="num" style="font-size: 15px">{{f.total}}</p><p class="lbl" style="color: {{f.cc}}">{{f.cons}}</p></div></div></sc-for>
+</div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{hsOf}}" hint-placeholder-val="{{ false }}">
+<sc-for list="{{histItems}}" as="h" hint-placeholder-count="3">
+<button onClick="{{h.open}}" class="card" style="gap: 8px; padding: 14px 16px; text-align: left; color: #F3F1FF; cursor: pointer; width: 100%">
+<div class="sb" style="width: 100%; flex-wrap: wrap; row-gap: 6px"><span class="chip" style="{{h.chip}}">{{h.l}}</span><span class="lbl val">{{h.platform}} · {{h.valueText}}</span></div>
+<div class="sb" style="width: 100%"><p class="mut grow">{{h.route}}</p><p class="num val" style="font-size: 15px; color: {{h.ic}}">{{h.impact}}</p></div>
+<p class="lbl">{{h.status}}</p>
+</button>
+</sc-for>
+<sc-if value="{{histEmpty}}" hint-placeholder-val="{{ false }}"><div class="card"><p class="mut">Nenhuma oferta capturada hoje.</p></div></sc-if>
+</sc-if>
+
+<sc-if value="{{hsEx}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="gap: 14px">
+<sc-for list="{{timeline}}" as="t" hint-placeholder-count="4">
+<div class="row" style="align-items: flex-start"><span style="width: 12px; height: 12px; margin-top: 5px; flex: none; border-radius: {{t.r}}; background: {{t.c}}"></span><div class="grow"><div class="sb"><p class="txt grow" style="font-weight: 600">{{t.t}}</p><p class="num val" style="font-size: 14px">{{t.v}}</p></div><p class="lbl">{{t.s}}</p></div></div>
+</sc-for>
+</div>
+</sc-if>
+</sc-if>
+
+<!-- ================= CONFIGURAÇÕES ================= -->
+<sc-if value="{{isCfg}}" hint-placeholder-val="{{ false }}">
+<sc-for list="{{cfgGroups}}" as="g" hint-placeholder-count="7">
+<button class="listbtn" onClick="{{g.go}}"><span style="{{g.ic}}"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{g.path}}"/></svg></span><span class="grow" style="display: flex; flex-direction: column; gap: 2px"><span style="font: 600 17px 'Space Grotesk', sans-serif">{{g.t}}</span><span style="font: 400 13px Inter, sans-serif; color: #D2CCF0">{{g.s}}</span></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E4DEFA" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M9 6l6 6-6 6"/></svg></button>
+</sc-for>
+</sc-if>
+
+<!-- ================= VEÍCULO ================= -->
+<sc-if value="{{isVeh}}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{noVeh}}" hint-placeholder-val="{{ false }}">
+<div class="card hero" style="align-items: center; text-align: center; padding: 28px 20px; gap: 14px">
+<div style="width: 64px; height: 64px; border-radius: 22px; background: rgba(155,123,255,.18); display: flex; align-items: center; justify-content: center; color: #C9B6F7"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11M3 11h18v6H3zM6 17v2M18 17v2"/></svg></div>
+<p class="h2" style="font-size: 20px">Nenhum veículo cadastrado</p>
+<p class="mut">O veículo define o tipo de abastecimento (ou recarga), a capacidade do tanque e o consumo de referência.</p>
+<button class="btn" onClick="{{goVehForm}}">Cadastrar meu veículo</button>
+</div>
+</sc-if>
+<sc-if value="{{hasVeh}}" hint-placeholder-val="{{ true }}">
+<button class="card" onClick="{{goVehDetail}}" aria-label="Ver detalhes do veículo" style="flex-direction: row; align-items: center; gap: 14px; padding: 14px 16px; width: 100%; color: #F3F1FF; cursor: pointer; text-align: left">
+<svg width="104" height="55" viewBox="0 0 110 58" aria-hidden="true" style="flex: none; max-width: 100%"><path d="M8 40c0-6 3-9 9-10l14-3 12-11c3-3 7-4 12-4h18c6 0 10 2 13 6l8 9c6 1 12 3 13 8v6c0 2-1 3-3 3H11c-2 0-3-1-3-3z" style="{{vBodyFill}}"/><path d="M45 18c2-2 5-3 9-3h17c4 0 7 1 9 4l5 7H37z" fill="#2A2742"/><path d="M8 40c0-6 3-9 9-10l14-3 12-11c3-3 7-4 12-4h18c6 0 10 2 13 6l8 9c6 1 12 3 13 8v6c0 2-1 3-3 3H11c-2 0-3-1-3-3z" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1"/><circle cx="28" cy="45" r="8" fill="#1A1830"/><circle cx="28" cy="45" r="3.5" fill="#8E8AB5"/><circle cx="86" cy="45" r="8" fill="#1A1830"/><circle cx="86" cy="45" r="3.5" fill="#8E8AB5"/></svg>
+<span class="grow" style="display: flex; flex-direction: column; gap: 4px; min-width: 0"><span class="h2" style="font-size: 20px">{{vName}}</span><span class="mut" style="font-size: 14px">{{vSub}}</span><span class="lbl" style="color: #B58AF5">Ver detalhes</span></span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9C4EC" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M9 6l6 6-6 6"/></svg>
+</button>
+<p class="sec">Consumo</p>
+<div class="card hero" style="gap: 8px">
+<p class="txt" style="font-weight: 600">Consumo atual do veículo</p>
+<div class="row" style="flex-wrap: wrap"><p class="num" style="font-size: 32px; color: #3FE0A0; white-space: nowrap">{{vConsNow}}</p><sc-if value="{{hasConsDelta}}" hint-placeholder-val="{{ true }}"><span style="{{vConsStyle}}">{{vConsDelta}}</span></sc-if></div>
+<p class="mut">{{vRefText}}</p><p class="lbl">{{vConsHist}}</p>
+</div>
+</sc-if>
+<div class="sim"><span class="simt">SIMULAÇÃO DO PROTÓTIPO</span><button class="pill" style="border: 1.5px solid #F6C445; color: #F3F1FF; background: transparent; align-self: flex-start" onClick="{{simNoVeh}}" disabled="{{simNoVehDisabled}}">Ver estado sem veículo cadastrado</button></div>
+</sc-if>
+
+<!-- ================= DETALHES DO VEÍCULO ================= -->
+<sc-if value="{{isVehDetail}}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{hasVeh}}" hint-placeholder-val="{{ true }}">
+<div class="card hero" style="gap: 12px; align-items: center; text-align: center; padding: 20px 16px">
+<sc-if value="{{vHasPhoto}}" hint-placeholder-val="{{ false }}"><img src="{{vPhotoSrc}}" alt="{{vName}}" style="width: 100%; max-width: 320px; border-radius: 18px"></sc-if>
+<sc-if value="{{vNoPhoto}}" hint-placeholder-val="{{ true }}"><div style="width: 100%; display: flex; justify-content: center; padding: 8px 0"><svg width="220" height="116" viewBox="0 0 110 58" aria-hidden="true" style="flex: none; max-width: 100%"><path d="M8 40c0-6 3-9 9-10l14-3 12-11c3-3 7-4 12-4h18c6 0 10 2 13 6l8 9c6 1 12 3 13 8v6c0 2-1 3-3 3H11c-2 0-3-1-3-3z" style="{{vBodyFill}}"/><path d="M45 18c2-2 5-3 9-3h17c4 0 7 1 9 4l5 7H37z" fill="#2A2742"/><path d="M8 40c0-6 3-9 9-10l14-3 12-11c3-3 7-4 12-4h18c6 0 10 2 13 6l8 9c6 1 12 3 13 8v6c0 2-1 3-3 3H11c-2 0-3-1-3-3z" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1"/><circle cx="28" cy="45" r="8" fill="#1A1830"/><circle cx="28" cy="45" r="3.5" fill="#8E8AB5"/><circle cx="86" cy="45" r="8" fill="#1A1830"/><circle cx="86" cy="45" r="3.5" fill="#8E8AB5"/></svg></div></sc-if>
+<p class="h2" style="font-size: 22px">{{vName}}</p>
+<p class="mut" style="font-size: 14px">{{vSub}}</p>
+<p class="lbl">{{vPhotoNote}}</p>
+</div>
+<div class="card" style="gap: 0; padding: 4px 16px">
+<sc-for list="{{vehRows}}" as="r" hint-placeholder-count="10"><div class="lrow" style="min-height: 48px; align-items: flex-start; padding: 10px 0"><p class="mut" style="width: 42%; flex: none">{{r.k}}</p><p class="txt grow" style="font-weight: 600; font-size: 14px; text-align: right">{{r.v}}</p></div></sc-for>
+</div>
+<button class="btn" onClick="{{goVehForm}}">Editar dados</button>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{isVehForm}}" hint-placeholder-val="{{ false }}">
+<p class="sec">Identificação</p>
+<div class="card" style="gap: 10px">
+<div class="grid2"><div><label class="lbl" for="vb">Marca</label><input id="vb" class="inp" placeholder="Ex.: Toyota" value="{{vf.brand}}" onChange="{{onVfBrand}}"></div><div><label class="lbl" for="vm">Modelo</label><input id="vm" class="inp" placeholder="Ex.: Corolla" value="{{vf.model}}" onChange="{{onVfModel}}"></div>
+<div><label class="lbl" for="vy">Ano</label><input id="vy" class="inp" inputmode="numeric" placeholder="2021" value="{{vf.year}}" onChange="{{onVfYear}}"></div><div><label class="lbl" for="vp">Placa</label><input id="vp" class="inp" placeholder="ABC-1234" value="{{vf.plate}}" onChange="{{onVfPlate}}"></div></div>
+</div>
+<p class="sec">Cor</p>
+<div class="card" style="gap: 10px">
+<div class="row" style="flex-wrap: wrap; gap: 6px"><sc-for list="{{vfColors}}" as="c" hint-placeholder-count="9"><button style="{{c.style}}" onClick="{{c.pick}}"><span style="{{c.dot}}"></span>{{c.n}}</button></sc-for></div>
+<p class="lbl">Usada na identificação visual do veículo.</p>
+</div>
+<p class="sec">Motorização</p>
+<div class="card" style="gap: 10px">
+<div class="row" style="flex-wrap: wrap; gap: 6px"><sc-for list="{{vfMotors}}" as="m" hint-placeholder-count="6"><button class="pill" style="{{m.style}}" onClick="{{m.pick}}">{{m.n}}</button></sc-for></div>
+<p class="lbl">{{vf.motorHint}}</p>
+<sc-if value="{{vf.hyb}}" hint-placeholder-val="{{ false }}"><p class="lbl" style="color: #E4DEFA">Combustível do motor a combustão</p><div class="row" style="flex-wrap: wrap; gap: 6px"><sc-for list="{{vfComb}}" as="m" hint-placeholder-count="3"><button class="pill" style="{{m.style}}" onClick="{{m.pick}}">{{m.n}}</button></sc-for></div></sc-if>
+</div>
+<sc-if value="{{vf.hasMotor}}" hint-placeholder-val="{{ true }}">
+<p class="sec">Capacidade e referência</p>
+<div class="card" style="gap: 10px">
+<div class="grid2">
+<sc-if value="{{vf.ice}}" hint-placeholder-val="{{ true }}"><div><label class="lbl" for="vt">Tanque (litros)</label><input id="vt" class="inp" inputmode="decimal" value="{{vf.tankL}}" onChange="{{onVfTank}}"></div><div><label class="lbl" for="vr">Consumo de referência (km/L)</label><input id="vr" class="inp" inputmode="decimal" value="{{vf.refCons}}" onChange="{{onVfRef}}"></div></sc-if>
+<sc-if value="{{vf.el}}" hint-placeholder-val="{{ false }}"><div><label class="lbl" for="vk">Bateria (kWh)</label><input id="vk" class="inp" inputmode="decimal" value="{{vf.batteryKwh}}" onChange="{{onVfBat}}"></div><div><label class="lbl" for="vre">Consumo de referência (km/kWh)</label><input id="vre" class="inp" inputmode="decimal" value="{{vf.refConsEl}}" onChange="{{onVfRefEl}}"></div></sc-if>
+<div><label class="lbl" for="vo">Hodômetro inicial (km)</label><input id="vo" class="inp" inputmode="numeric" value="{{vf.odoStart}}" onChange="{{onVfOdo}}"></div>
+</div>
+<p class="lbl">A referência só é usada enquanto não houver ciclo real medido.</p>
+</div>
+</sc-if>
+<sc-if value="{{vf.hasErr}}" hint-placeholder-val="{{ false }}"><p class="mut" style="color: #FF6B7D; padding: 0 2px">{{vf.err}}</p></sc-if>
+<button class="btn" onClick="{{saveVf}}">{{vf.saveLabel}}</button>
+</sc-if>
+
+<!-- ================= METAS E LIMITES ================= -->
+<sc-if value="{{isCfgMeta}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="gap: 16px">
+<div class="sb" style="flex-wrap: wrap"><div class="grow"><p class="txt" style="font-weight: 600">Meta (R$/km)</p><p class="lbl">Verde a partir deste valor</p></div><div class="row val" style="gap: 6px"><button class="btn2" aria-label="Diminuir meta" onClick="{{metaDown}}" style="width: 44px; padding: 0; min-height: 44px">−</button><span class="num" style="width: 76px; text-align: center">{{metaText}}</span><button class="btn2" aria-label="Aumentar meta" onClick="{{metaUp}}" style="width: 44px; padding: 0; min-height: 44px">+</button></div></div>
+<div class="sb" style="flex-wrap: wrap"><div class="grow"><p class="txt" style="font-weight: 600">Limite inferior</p><p class="lbl">Vermelho abaixo deste valor</p></div><div class="row val" style="gap: 6px"><button class="btn2" aria-label="Diminuir limite inferior" onClick="{{lowDown}}" style="width: 44px; padding: 0; min-height: 44px">−</button><span class="num" style="width: 76px; text-align: center">{{lowText}}</span><button class="btn2" aria-label="Aumentar limite inferior" onClick="{{lowUp}}" style="width: 44px; padding: 0; min-height: 44px">+</button></div></div>
+</div>
+<div class="card" style="gap: 6px"><p class="txt" style="font-weight: 600">Faixas de análise</p><p class="mut">Critério dos "50%" de Favorável com atenção e limites de trânsito, risco e terreno: pendentes de definição.</p></div>
+</sc-if>
+
+<!-- ================= TERRITÓRIO ================= -->
+<sc-if value="{{isTerr}}" hint-placeholder-val="{{ false }}">
+<div style="position: relative; height: 330px; border-radius: 24px; background: radial-gradient(120% 90% at 30% 20%, #2A2650 0%, #1A1838 70%); overflow: hidden; border: 1px solid rgba(181,138,245,.22)">
+<div style="position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(141,121,217,.10) 0 1px, transparent 1px 30px), repeating-linear-gradient(90deg, rgba(141,121,217,.10) 0 1px, transparent 1px 30px)"></div>
+<sc-for list="{{mapZones}}" as="z" hint-placeholder-count="4"><div style="{{z.style}}"></div></sc-for>
+<sc-for list="{{mapPlaces}}" as="p" hint-placeholder-count="6"><div style="{{p.dot}}"></div><span style="{{p.lab}}">{{p.n}}</span></sc-for>
+<div style="position: absolute; left: 10px; right: 10px; bottom: 10px; display: flex; gap: 6px; flex-wrap: wrap">
+<span class="chip" style="background: rgba(17,15,42,.85); color: #3FE0A0">● Preferência {{zCountV}}</span><span class="chip" style="background: rgba(17,15,42,.85); color: #F6C445">● Atenção {{zCountA}}</span><span class="chip" style="background: rgba(17,15,42,.85); color: #FF6B7D">● Risco {{zCountR}}</span>
+</div>
+</div>
+<p class="lbl" style="padding: 0 2px">Mapa ilustrativo · provedor de mapas pendente · sem mockup aprovado desta tela</p>
+<div class="card" style="gap: 10px">
+<p class="lbl">Consultar local</p>
+<div class="row" style="flex-wrap: wrap; gap: 6px"><sc-for list="{{queryChips}}" as="q" hint-placeholder-count="6"><button class="pill" style="{{q.style}}" onClick="{{q.pick}}">{{q.n}}</button></sc-for></div>
+<p class="txt" style="font-weight: 600; color: {{queryColor}}">{{queryResult}}</p>
+<sc-if value="{{queryHasDetail}}" hint-placeholder-val="{{ false }}"><p class="lbl">{{queryDetail}}</p></sc-if>
+</div>
+<div class="card" style="gap: 0">
+<p class="h2" style="padding-bottom: 6px">Zonas cadastradas</p>
+<sc-for list="{{zoneList}}" as="z" hint-placeholder-count="4"><div class="lrow"><span style="width: 12px; height: 12px; border-radius: 50%; flex: none; background: {{z.color}}"></span><div class="grow"><p class="txt" style="font-weight: 600">{{z.name}}</p><p class="lbl">{{z.meta}}</p></div><button class="lnk" style="color: #FF9AA6; flex: none" onClick="{{z.del}}" aria-label="Excluir zona {{z.name}}">Excluir</button></div></sc-for>
+</div>
+<button class="btn" onClick="{{goZoneForm}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Nova zona</button>
+</sc-if>
+
+<sc-if value="{{isZoneForm}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="gap: 12px">
+<label class="lbl" for="zn">Nome</label>
+<input id="zn" class="inp" placeholder="Ex.: Bela Vista" value="{{zfName}}" onChange="{{onZfName}}">
+<p class="lbl">Centro do círculo (no app: busca de endereço online ou toque no mapa)</p>
+<div class="row" style="flex-wrap: wrap; gap: 6px"><sc-for list="{{zfPlaces}}" as="q" hint-placeholder-count="6"><button class="pill" style="{{q.style}}" onClick="{{q.pick}}">{{q.n}}</button></sc-for></div>
+<p class="lbl">Tipo</p>
+<div class="row" style="flex-wrap: wrap; gap: 6px"><sc-for list="{{zfTypes}}" as="t" hint-placeholder-count="3"><button class="pill" style="{{t.style}}" onClick="{{t.pick}}">{{t.n}}</button></sc-for></div>
+<sc-if value="{{zfShowTags}}" hint-placeholder-val="{{ false }}"><p class="lbl">Motivo</p><div class="row" style="flex-wrap: wrap; gap: 6px"><sc-for list="{{zfTags}}" as="t" hint-placeholder-count="4"><button class="pill" style="{{t.style}}" onClick="{{t.pick}}">{{t.n}}</button></sc-for></div></sc-if>
+<label class="lbl" for="zr">Raio (km)</label>
+<input id="zr" class="inp" inputmode="decimal" value="{{zfR}}" onChange="{{onZfR}}" style="font: 600 18px 'Space Grotesk', sans-serif">
+<sc-if value="{{zfErr}}" hint-placeholder-val="{{ false }}"><p class="mut" style="color: #FF6B7D">Informe um raio maior que zero.</p></sc-if>
+<button class="btn" onClick="{{saveZone}}" disabled="{{zfErr}}">Salvar zona</button>
+</div>
+</sc-if>
+
+<sc-if value="{{isPref}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="gap: 12px">
+<span class="chip" style="background: rgba(246,196,69,0.14); color: #F6C445; align-self: flex-start">Estrutura prevista · aguarda mockup</span>
+<p class="txt">Permissões de captura e sobreposição (dependem da Sprint 0)</p>
+<p class="txt">Alertas e notificações</p>
+<p class="txt">Uso em segundo plano</p>
+<p class="txt">Guardar comprovantes (padrão: descartar)</p>
+</div>
+<sc-if value="{{hasFlash}}" hint-placeholder-val="{{ false }}"><button onClick="{{dismissFlash}}" class="card" style="padding: 12px 14px; border-color: rgba(63,224,160,.6); color: #F3F1FF; cursor: pointer; text-align: left; width: 100%; font: 500 14px Inter, sans-serif">{{flash}}</button></sc-if>
+<p class="sec">Seus dados</p>
+<div class="card" style="gap: 12px">
+<p class="txt">{{prefStore}}</p>
+<p class="mut">{{prefDemo}}</p>
+<sc-if value="{{hasDemo}}" hint-placeholder-val="{{ true }}"><button class="btn2" onClick="{{removeDemo}}">Remover dados de exemplo</button></sc-if>
+<button class="btn2" onClick="{{restoreDemo}}">Restaurar dados de exemplo (substitui tudo)</button>
+<sc-if value="{{confirmClear}}" hint-placeholder-val="{{ false }}"><p class="mut" style="color: #FF9AA6">Apagar todos os registros deste aparelho? Não há cópia na nuvem.</p><button class="btn2" onClick="{{clearAll}}" style="border-color: rgba(255,107,125,.7); color: #FF9AA6">Sim, apagar tudo</button><button class="lnk" onClick="{{cancelClear}}" style="align-self: flex-start">Cancelar</button></sc-if>
+<sc-if value="{{confirmClearOff}}" hint-placeholder-val="{{ true }}"><button class="lnk" onClick="{{askClear}}" style="align-self: flex-start; color: #FF9AA6">Apagar todos os registros…</button></sc-if>
+</div>
+</sc-if>
+
+<!-- ================= COMBUSTÍVEL / ENERGIA ================= -->
+<sc-if value="{{isFuel}}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{hasFlash}}" hint-placeholder-val="{{ false }}"><button onClick="{{dismissFlash}}" class="card" style="flex-direction: row; align-items: center; gap: 10px; padding: 12px 14px; border-color: rgba(63,224,160,.6); color: #F3F1FF; cursor: pointer; text-align: left; width: 100%"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3FE0A0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span class="grow" style="font: 500 14px Inter, sans-serif">{{flash}}</span></button></sc-if>
+<sc-if value="{{fuelNoVeh}}" hint-placeholder-val="{{ false }}"><div class="card hero" style="gap: 12px"><p class="h2">Cadastre o veículo primeiro</p><p class="mut">O tipo de motorização define se você registra abastecimentos, recargas ou ambos.</p><button class="btn" onClick="{{goVehFromFuel}}">Cadastrar meu veículo</button></div></sc-if>
+<sc-if value="{{fuelIce}}" hint-placeholder-val="{{ true }}">
+<p class="sec">Consumo</p>
+<div class="card hero" style="gap: 6px">
+<p class="lbl">Último ciclo cheio → cheio</p>
+<div class="row" style="align-items: baseline; flex-wrap: wrap"><p class="num" style="font-size: 34px; color: #3FE0A0">{{fuelCons}}</p><span class="mut">km/L · custo {{fuelCpk}}/km</span></div>
+<p class="mut">{{fuelConsHist}}</p>
+<sc-if value="{{fuelUsingRef}}" hint-placeholder-val="{{ false }}"><p class="lbl" style="color: #F6C445">Sem ciclo completo: custo estimado pelo consumo de referência do veículo.</p></sc-if>
+<p class="lbl">{{fuelCpkNote}}</p>
+<sc-if value="{{hasCyc}}" hint-placeholder-val="{{ true }}"><div style="display: flex; flex-direction: column; gap: 4px; padding-top: 8px; border-top: 1px solid rgba(181,138,245,.18)"><sc-for list="{{cycRows}}" as="c" hint-placeholder-count="4"><div class="sb"><p class="lbl grow">{{c.l}} · {{c.d}}</p><p class="num val" style="font-size: 14px">{{c.v}}</p></div></sc-for></div></sc-if>
+</div>
+<p class="sec">Preço e estoque</p>
+<div class="grid2">
+<div class="card" style="gap: 4px; padding: 14px"><p class="lbl">Preço médio pago (PMP)</p><p class="num" style="font-size: 20px">{{pmpAll}}</p><p class="lbl">Σ valores pagos ÷ Σ litros</p><sc-for list="{{pmpTypes}}" as="t" hint-placeholder-count="2"><div class="sb"><p class="lbl grow">{{t.n}}</p><p class="lbl val" style="color: #F3F1FF">{{t.v}}</p></div></sc-for></div>
+<div class="card" style="gap: 4px; padding: 14px"><div class="sb"><p class="lbl grow">Estoque no tanque</p><span class="chip" style="background: rgba(246,196,69,.16); color: #F6C445; padding: 2px 8px; font-size: 10.5px">estimativa</span></div><p class="num" style="font-size: 20px">{{stockL}}<span class="lbl" style="margin-left: 6px">{{stockCap}}</span></p><p class="lbl">Custo médio do estoque: <span style="color: #F3F1FF; font-weight: 600">{{stockAvg}}</span></p></div>
+</div>
+<p class="lbl" style="padding: 0 2px">{{stockFullNote}} {{stockInitNote}}</p>
+</sc-if>
+<sc-if value="{{fuelEl}}" hint-placeholder-val="{{ false }}">
+<p class="sec">Energia</p>
+<div class="grid2">
+<div class="card" style="gap: 4px; padding: 14px"><p class="lbl">Preço médio pago</p><p class="num" style="font-size: 20px">{{energyPmp}}</p><p class="lbl">{{energyN}} recargas</p></div>
+<div class="card" style="gap: 4px; padding: 14px"><p class="lbl">Consumo elétrico</p><p class="num" style="font-size: 16px">{{energyCons}}</p><p class="lbl">Custo: {{energyCpk}}</p></div>
+</div>
+</sc-if>
+<sc-if value="{{fuelOk}}" hint-placeholder-val="{{ true }}">
+<div class="grid2">
+<sc-if value="{{fuelIce}}" hint-placeholder-val="{{ true }}"><button class="btn" onClick="{{goFuelForm}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Abastecimento</button></sc-if>
+<sc-if value="{{fuelEl}}" hint-placeholder-val="{{ false }}"><button class="btn" onClick="{{goChargeForm}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Recarga</button></sc-if>
+</div>
+<p class="sec">Histórico</p>
+<div class="card" style="gap: 0; padding: 4px 8px 4px 16px">
+<sc-for list="{{recRows}}" as="f" hint-placeholder-count="5"><div class="lrow" style="position: relative; align-items: flex-start; padding: 10px 0"><div class="grow"><p class="txt" style="font-weight: 600; font-size: 14px">{{f.top}}</p><p class="lbl">{{f.sub}}</p><sc-if value="{{f.hasEdit}}" hint-placeholder-val="{{ false }}"><p class="lbl" style="color: #F6C445">{{f.edit}}</p></sc-if><sc-if value="{{f.hasWarn}}" hint-placeholder-val="{{ false }}"><p class="lbl" style="color: #F6C445">{{f.warn}}</p></sc-if></div><div class="val" style="text-align: right"><p class="num" style="font-size: 14px">{{f.total}}</p><p class="lbl" style="color: {{f.cc}}">{{f.cons}}</p></div><button class="kebab" aria-label="Ações do registro" onClick="{{f.menu}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
+<sc-if value="{{f.menuOpen}}" hint-placeholder-val="{{ false }}"><div style="position: absolute; right: 44px; top: 40px; z-index: 5; padding: 6px; border-radius: 14px; background: #2B2658; border: 1px solid rgba(181,138,245,.4); box-shadow: 0 12px 26px rgba(0,0,0,.5)"><button onClick="{{f.fix}}" style="min-height: 44px; padding: 0 18px; border: 0; background: transparent; color: #F3F1FF; font: 500 14px Inter, sans-serif; text-align: left; cursor: pointer; white-space: nowrap">Corrigir data e hora</button></div></sc-if></div></sc-for>
+<sc-if value="{{recEmpty}}" hint-placeholder-val="{{ false }}"><p class="mut" style="padding: 12px 0">Nenhum registro.</p></sc-if>
+</div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{isFuelForm}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="gap: 6px; padding: 12px 14px; background: rgba(17,15,42,.55)">
+<sc-if value="{{ffWhen.auto}}" hint-placeholder-val="{{ true }}"><div class="row"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9B6F7" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 7v5l3.5 2"/></svg><p class="mut grow">{{ffWhen.nowText}}</p></div><button class="lnk" onClick="{{ffWhen.toRetro}}" style="align-self: flex-start; min-height: 40px; padding: 4px 0">Lançamento retroativo: alterar data e hora</button></sc-if>
+<sc-if value="{{ffWhen.retro}}" hint-placeholder-val="{{ false }}"><div class="grid2"><div><label class="lbl" for="ffWhend">Data (dd/mm/aaaa)</label><input id="ffWhend" class="inp" inputmode="numeric" value="{{ffWhen.date}}" onChange="{{ffWhen.onDate}}"></div><div><label class="lbl" for="ffWhent">Hora (hh:mm)</label><input id="ffWhent" class="inp" inputmode="numeric" value="{{ffWhen.time}}" onChange="{{ffWhen.onTime}}"></div></div><p class="lbl">O registro guarda também o momento real em que foi criado.</p><button class="lnk" onClick="{{ffWhen.toAuto}}" style="align-self: flex-start; min-height: 40px; padding: 4px 0">Usar data e hora atuais</button></sc-if>
+</div>
+<sc-if value="{{fuelFlex}}" hint-placeholder-val="{{ false }}"><p class="sec">Combustível</p><div class="row" style="flex-wrap: wrap; gap: 6px"><sc-for list="{{ffTypes}}" as="t" hint-placeholder-count="2"><button class="pill" style="{{t.style}}" onClick="{{t.pick}}">{{t.n}}</button></sc-for></div></sc-if>
+<div class="card" style="gap: 12px">
+<div class="grid2">
+<div><label class="lbl" for="fl">Litros</label><input id="fl" class="inp" inputmode="decimal" placeholder="0,0" value="{{ffL}}" onChange="{{onFfL}}"></div>
+<div><label class="lbl" for="fp">Preço por litro (R$)</label><input id="fp" class="inp" inputmode="decimal" value="{{ffP}}" onChange="{{onFfP}}"></div>
+<div><label class="lbl" for="fo">Hodômetro (km)</label><input id="fo" class="inp" inputmode="numeric" value="{{ffOdo}}" onChange="{{onFfOdo}}"></div>
+<div style="display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; padding: 0 2px 8px"><span class="lbl">Total</span><span class="num" style="font-size: 20px; white-space: nowrap">{{ffTotal}}</span></div>
+</div>
+<div class="row" style="flex-wrap: wrap"><button class="pill" style="{{fullStyle}}" onClick="{{setFull}}">Tanque cheio</button><button class="pill" style="{{partStyle}}" onClick="{{setPart}}">Parcial</button></div>
+<button class="btn2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Foto do comprovante (opcional)</button>
+</div>
+<sc-if value="{{ffHasErr}}" hint-placeholder-val="{{ false }}"><p class="mut" style="color: #FF6B7D; padding: 0 2px">{{ffErr}}</p></sc-if>
+<button class="btn" onClick="{{saveFuel}}" disabled="{{ffInvalid}}">Salvar abastecimento</button>
+</sc-if>
+
+<sc-if value="{{isChargeForm}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="gap: 6px; padding: 12px 14px; background: rgba(17,15,42,.55)">
+<sc-if value="{{chWhen.auto}}" hint-placeholder-val="{{ true }}"><div class="row"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9B6F7" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 7v5l3.5 2"/></svg><p class="mut grow">{{chWhen.nowText}}</p></div><button class="lnk" onClick="{{chWhen.toRetro}}" style="align-self: flex-start; min-height: 40px; padding: 4px 0">Lançamento retroativo: alterar data e hora</button></sc-if>
+<sc-if value="{{chWhen.retro}}" hint-placeholder-val="{{ false }}"><div class="grid2"><div><label class="lbl" for="chWhend">Data (dd/mm/aaaa)</label><input id="chWhend" class="inp" inputmode="numeric" value="{{chWhen.date}}" onChange="{{chWhen.onDate}}"></div><div><label class="lbl" for="chWhent">Hora (hh:mm)</label><input id="chWhent" class="inp" inputmode="numeric" value="{{chWhen.time}}" onChange="{{chWhen.onTime}}"></div></div><p class="lbl">O registro guarda também o momento real em que foi criado.</p><button class="lnk" onClick="{{chWhen.toAuto}}" style="align-self: flex-start; min-height: 40px; padding: 4px 0">Usar data e hora atuais</button></sc-if>
+</div>
+<div class="card" style="gap: 12px">
+<div class="grid2">
+<div><label class="lbl" for="ck">Energia (kWh)</label><input id="ck" class="inp" inputmode="decimal" placeholder="0,0" value="{{chK}}" onChange="{{onChK}}"></div>
+<div><label class="lbl" for="cp">Preço por kWh (R$)</label><input id="cp" class="inp" inputmode="decimal" placeholder="0,00" value="{{chP}}" onChange="{{onChP}}"></div>
+<div><label class="lbl" for="co">Hodômetro (km)</label><input id="co" class="inp" inputmode="numeric" value="{{chOdo}}" onChange="{{onChOdo}}"></div>
+<div style="display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; padding: 0 2px 8px"><span class="lbl">Total</span><span class="num" style="font-size: 20px; white-space: nowrap">{{chTotal}}</span></div>
+<div class="row" style="flex-wrap: wrap"><button class="pill" style="{{chFullStyle}}" onClick="{{setChFull}}">Carregou até 100%</button><button class="pill" style="{{chPartStyle}}" onClick="{{setChPart}}">Carga parcial</button></div>
+<p class="lbl">Consumo medido só entre duas cargas até 100%; nos demais casos o valor é estimado.</p>
+</div>
+</div>
+<sc-if value="{{chHasErr}}" hint-placeholder-val="{{ false }}"><p class="mut" style="color: #FF6B7D; padding: 0 2px">{{chErr}}</p></sc-if>
+<button class="btn" onClick="{{saveCharge}}" disabled="{{chInvalid}}">Salvar recarga</button>
+</sc-if>
+
+<sc-if value="{{isEditDate}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="gap: 10px">
+<p class="txt" style="font-weight: 600">{{edWhat}}</p><p class="lbl">{{edCreated}}</p>
+<div class="grid2"><div><label class="lbl" for="edd">Nova data (dd/mm/aaaa)</label><input id="edd" class="inp" inputmode="numeric" value="{{edDate}}" onChange="{{onEdDate}}"></div><div><label class="lbl" for="edt">Hora (hh:mm)</label><input id="edt" class="inp" inputmode="numeric" value="{{edTime}}" onChange="{{onEdTime}}"></div></div>
+<p class="lbl">A data original e o momento da correção ficam guardados no registro.</p>
+<sc-if value="{{edInvalid}}" hint-placeholder-val="{{ false }}"><p class="mut" style="color: #FF6B7D">{{edErr}}</p></sc-if>
+</div>
+<button class="btn" onClick="{{saveEd}}" disabled="{{edInvalid}}">Salvar correção</button>
+</sc-if>
+
+<!-- ================= CUSTOS OPERACIONAIS ================= -->
+<sc-if value="{{isCosts}}" hint-placeholder-val="{{ false }}">
+<p class="sec">Resumo do mês</p>
+<div class="card hero" style="gap: 14px">
+<div class="sb"><p class="grow" style="margin: 0; font: 600 15px Inter, sans-serif; color: #E4DEFA">Custos estimados</p><button onClick="{{toggleCostMonth}}" class="val" style="display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border-radius: 14px; border: 1px solid rgba(181,138,245,.4); background: rgba(17,15,42,.5); color: #F3F1FF; font: 500 13px Inter, sans-serif; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16v14H4zM4 10h16M8 3v5M16 3v5"/></svg>{{costMonthLabel}}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>
+<div class="wrapN" style="display: flex; align-items: stretch; gap: 0">
+<p class="num" style="flex: 1 0 auto; font-size: 30px; white-space: nowrap; align-self: center">{{costTotal}}</p>
+<div class="vdiv" style="width: 1px; background: rgba(181,138,245,.3); margin: 0 12px"></div>
+<div class="val" style="display: flex; flex-direction: column; justify-content: center"><span class="num" style="font-size: 17px; color: #F6C445">{{costPerKm}}</span><span class="lbl">Custo total por km</span></div>
+</div>
+<div style="display: flex; height: 14px; border-radius: 999px; overflow: hidden; background: rgba(74,69,114,.55)"><sc-for list="{{costParts}}" as="p" hint-placeholder-count="3"><div style="{{p.seg}}"></div></sc-for></div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{costParts}}" as="p" hint-placeholder-count="3"><div class="row"><span style="{{p.dot}}"></span><p class="txt grow" style="font-size: 14px">{{p.n}}</p><p class="num val" style="font-size: 14px">{{p.v}}</p><p class="lbl val" style="width: 44px; text-align: right">{{p.pct}}</p></div></sc-for>
+</div>
+<sc-if value="{{costPartial}}" hint-placeholder-val="{{ false }}"><p class="lbl" style="color: #F6C445">Mês parcial: fixos pelo valor mensal integral; custo por km distorcido.</p></sc-if>
+</div>
+<p class="sec">Detalhamento</p>
+<div class="card" style="gap: 0; padding: 4px 16px">
+<button class="lrow" onClick="{{goCostFix}}" style="width: 100%; background: transparent; border-left: 0; border-right: 0; border-bottom: 0; color: #F3F1FF; cursor: pointer; text-align: left; min-height: 64px"><span style="width: 4px; height: 34px; border-radius: 4px; background: #6E8BFF; flex: none"></span><span class="grow" style="display: flex; flex-direction: column; gap: 2px"><span style="font: 600 16px Inter, sans-serif">Custos fixos</span><span style="font: 400 13px Inter, sans-serif; color: #C9C4EC">Planos, seguros, licenças etc.</span></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E4DEFA" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M9 6l6 6-6 6"/></svg></button>
+<button class="lrow" onClick="{{goCostVar}}" style="width: 100%; background: transparent; border-left: 0; border-right: 0; border-bottom: 0; color: #F3F1FF; cursor: pointer; text-align: left; min-height: 64px"><span style="width: 4px; height: 34px; border-radius: 4px; background: #FF9F43; flex: none"></span><span class="grow" style="display: flex; flex-direction: column; gap: 2px"><span style="font: 600 16px Inter, sans-serif">Custos variáveis</span><span style="font: 400 13px Inter, sans-serif; color: #C9C4EC">Lavagem, pedágios, estacionamento, alimentação</span></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E4DEFA" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M9 6l6 6-6 6"/></svg></button>
+<button class="lrow" onClick="{{goCostKm}}" style="width: 100%; background: transparent; border-left: 0; border-right: 0; border-bottom: 0; color: #F3F1FF; cursor: pointer; text-align: left; min-height: 64px"><span style="width: 4px; height: 34px; border-radius: 4px; background: #F6C445; flex: none"></span><span class="grow" style="display: flex; flex-direction: column; gap: 2px"><span style="font: 600 16px Inter, sans-serif">Custo por quilômetro</span><span style="font: 400 13px Inter, sans-serif; color: #C9C4EC">Composição por grupo</span></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E4DEFA" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M9 6l6 6-6 6"/></svg></button>
+</div>
+<p class="sec">Análise</p>
+<button class="listbtn" onClick="{{goCostEvo}}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C9B6F7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M3 20h18M5 16l4-5 4 3 6-7M15 7h4v4"/></svg><span class="grow" style="display: flex; flex-direction: column; gap: 2px"><span style="font: 600 16px Inter, sans-serif">Evolução dos custos</span><span style="font: 400 13px Inter, sans-serif; color: #C9C4EC">Abre os Evolutivos com todas as linhas de custo</span></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E4DEFA" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M9 6l6 6-6 6"/></svg></button>
+</sc-if>
+
+<sc-if value="{{isCostFix}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px 14px">
+<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#F3F1FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M4 6h16v14H4zM4 10h16M8 3v5M16 3v5"/></svg>
+<div style="flex: 1 0 auto"><p class="mut" style="font-size: 15px">Total mensal</p><p class="num fitL" style="font-size: 26px; white-space: nowrap">{{fixTotal}}</p></div>
+<span class="chip val" style="background: rgba(79,125,255,.22); color: #FFFFFF; border: 1.5px solid #4F7DFF; font-size: 13px; padding: 7px 12px">{{fixPct}}</span>
+</div>
+<p class="sec">Lançamentos fixos</p>
+<div class="card" style="gap: 0; padding: 4px 8px 4px 16px">
+<sc-for list="{{fixRows}}" as="f" hint-placeholder-count="6">
+<div class="lrow" style="position: relative"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F3F1FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="{{f.path}}"/></svg><p class="txt grow" style="font-weight: 500">{{f.n}}</p><div class="val" style="text-align: right"><p class="num" style="font-size: 15px">{{f.v}}</p><p class="lbl">Mensal</p></div><button class="kebab" aria-label="Ações para {{f.n}}" onClick="{{f.menu}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
+<sc-if value="{{f.menuOpen}}" hint-placeholder-val="{{ false }}"><div style="position: absolute; right: 44px; top: 44px; z-index: 5; padding: 6px; border-radius: 14px; background: #2B2658; border: 1px solid rgba(181,138,245,.4); box-shadow: 0 12px 26px rgba(0,0,0,.5); display: flex; flex-direction: column"><button onClick="{{f.edit}}" style="min-height: 44px; padding: 0 18px; border: 0; background: transparent; color: #F3F1FF; font: 500 14px Inter, sans-serif; text-align: left; cursor: pointer">Editar</button><button onClick="{{f.del}}" style="min-height: 44px; padding: 0 18px; border: 0; background: transparent; color: #FF8A99; font: 500 14px Inter, sans-serif; text-align: left; cursor: pointer">Excluir</button></div></sc-if>
+</div>
+</sc-for>
+</div>
+<button class="btn" onClick="{{addFix}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Adicionar custo fixo</button>
+<div class="card" style="flex-direction: row; align-items: center; gap: 12px; padding: 14px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F3F1FF" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 11v5M12 8v.5"/></svg><p class="mut grow" style="font-size: 14px">Custos fixos são despesas recorrentes que existem mesmo sem rodar.</p></div>
+</sc-if>
+
+<sc-if value="{{isCostVar}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px 14px">
+<span style="color: #FF9F43; display: flex; flex: none"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16M3 21h13M7 7h5v4H7zM15 9h2a2 2 0 0 1 2 2v6a1.5 1.5 0 0 0 3 0V8l-3-3"/></svg></span>
+<div style="flex: 1 0 auto"><p class="mut" style="font-size: 15px">Total no mês · {{varMonth}}</p><p class="num fitL" style="font-size: 26px; white-space: nowrap">{{varTotal}}</p></div>
+<span class="chip val" style="background: rgba(255,159,67,.22); color: #FFFFFF; border: 1.5px solid #FF9F43; font-size: 13px; padding: 7px 12px">{{varPct}}</span>
+</div>
+<p class="sec">Por categoria</p>
+<div class="card" style="gap: 0; padding: 4px 8px 4px 16px">
+<sc-for list="{{varRows}}" as="v" hint-placeholder-count="5">
+<button class="lrow" onClick="{{v.open}}" style="width: 100%; background: transparent; border-left: 0; border-right: 0; border-bottom: 0; color: #F3F1FF; cursor: pointer; text-align: left; padding-right: 8px"><span style="{{v.ic}}"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{v.path}}"/></svg></span><span class="grow" style="display: flex; flex-direction: column"><span style="font: 600 15px Inter, sans-serif">{{v.n}}</span><span class="lbl">{{v.cnt}}</span></span><span class="num val" style="font-size: 15px">{{v.v}}</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9C4EC" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M9 6l6 6-6 6"/></svg></button>
+</sc-for>
+</div>
+<button class="btn" onClick="{{addVar}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Adicionar custo variável</button>
+<div class="card" style="gap: 8px">
+<div class="row"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F3F1FF" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M5 20L9 4M19 20L15 4M12 6v2M12 11v2M12 16v2"/></svg><div class="grow"><p class="txt" style="font-weight: 600">Custo por quilômetro</p><p class="lbl">{{varCpkMonth}}</p></div></div>
+<p class="num" style="font-size: 28px; color: #F6C445">{{varCpk}}</p>
+<p class="mut">Considera fixos, variáveis, combustível estimado e manutenção do mês, sobre {{varKmTxt}} em expediente.</p>
+</div>
+</sc-if>
+
+<sc-if value="{{isCostCat}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="gap: 0; padding: 4px 8px 4px 16px">
+<sc-for list="{{catRows}}" as="e" hint-placeholder-count="4">
+<div class="lrow" style="position: relative"><div class="grow"><p class="txt" style="font-weight: 500">{{e.d}}</p><sc-if value="{{e.hasNote}}" hint-placeholder-val="{{ false }}"><p class="lbl">{{e.note}}</p></sc-if></div><p class="num val" style="font-size: 15px">{{e.v}}</p><button class="kebab" aria-label="Ações do registro de {{e.d}}" onClick="{{e.menu}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
+<sc-if value="{{e.menuOpen}}" hint-placeholder-val="{{ false }}"><div style="position: absolute; right: 44px; top: 40px; z-index: 5; padding: 6px; border-radius: 14px; background: #2B2658; border: 1px solid rgba(181,138,245,.4); box-shadow: 0 12px 26px rgba(0,0,0,.5); display: flex; flex-direction: column"><button onClick="{{e.edit}}" style="min-height: 44px; padding: 0 18px; border: 0; background: transparent; color: #F3F1FF; font: 500 14px Inter, sans-serif; text-align: left; cursor: pointer">Editar</button><button onClick="{{e.del}}" style="min-height: 44px; padding: 0 18px; border: 0; background: transparent; color: #FF8A99; font: 500 14px Inter, sans-serif; text-align: left; cursor: pointer">Excluir</button></div></sc-if>
+</div>
+</sc-for>
+<sc-if value="{{catEmpty}}" hint-placeholder-val="{{ false }}"><p class="mut" style="padding: 14px 0">Nenhum registro neste mês.</p></sc-if>
+</div>
+<button class="btn" onClick="{{addVar}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Adicionar registro</button>
+</sc-if>
+
+<sc-if value="{{isCostKm}}" hint-placeholder-val="{{ false }}">
+<div class="card hero" style="gap: 6px"><p class="lbl">{{costMonthLabel}}</p><p class="num" style="font-size: 34px; color: #F6C445">{{costPerKm}}</p><p class="mut">{{kmBaseText}}</p></div>
+<div class="card" style="gap: 0"><sc-for list="{{kmRows}}" as="r" hint-placeholder-count="4"><div class="lrow"><p class="txt grow">{{r.k}}</p><p class="num val" style="font-size: 15px">{{r.v}}</p></div></sc-for></div>
+<button class="btn2" onClick="{{toggleCostMonth}}">Alternar mês</button>
+</sc-if>
+
+<sc-if value="{{isCostForm}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="gap: 12px">
+<sc-if value="{{cfIsFix}}" hint-placeholder-val="{{ true }}"><label class="lbl" for="cfn">Nome</label><input id="cfn" class="inp" placeholder="Ex.: Seguro do veículo" value="{{cfName}}" onChange="{{onCfName}}"><p class="lbl">Recorrência: mensal</p></sc-if>
+<sc-if value="{{cfIsVar}}" hint-placeholder-val="{{ false }}"><p class="lbl">Categoria</p><div class="row" style="flex-wrap: wrap; gap: 6px"><sc-for list="{{cfCats}}" as="c" hint-placeholder-count="5"><button class="pill" style="{{c.style}}" onClick="{{c.pick}}">{{c.n}}</button></sc-for></div><label class="lbl" for="cfo">Observação (opcional)</label><input id="cfo" class="inp" value="{{cfNote}}" onChange="{{onCfNote}}"></sc-if>
+<label class="lbl" for="cfv">Valor (R$)</label><input id="cfv" class="inp" inputmode="decimal" placeholder="0,00" value="{{cfV}}" onChange="{{onCfV}}" style="font: 600 20px 'Space Grotesk', sans-serif">
+<sc-if value="{{cfHasErr}}" hint-placeholder-val="{{ false }}"><p class="mut" style="color: #FF6B7D">{{cfErr}}</p></sc-if>
+</div>
+<sc-if value="{{cfIsVar}}" hint-placeholder-val="{{ false }}"><div class="card" style="gap: 6px; padding: 12px 14px; background: rgba(17,15,42,.55)">
+<sc-if value="{{cfWhen.auto}}" hint-placeholder-val="{{ true }}"><div class="row"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9B6F7" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 7v5l3.5 2"/></svg><p class="mut grow">{{cfWhen.nowText}}</p></div><button class="lnk" onClick="{{cfWhen.toRetro}}" style="align-self: flex-start; min-height: 40px; padding: 4px 0">Lançamento retroativo: alterar data e hora</button></sc-if>
+<sc-if value="{{cfWhen.retro}}" hint-placeholder-val="{{ false }}"><div class="grid2"><div><label class="lbl" for="cfWhend">Data (dd/mm/aaaa)</label><input id="cfWhend" class="inp" inputmode="numeric" value="{{cfWhen.date}}" onChange="{{cfWhen.onDate}}"></div><div><label class="lbl" for="cfWhent">Hora (hh:mm)</label><input id="cfWhent" class="inp" inputmode="numeric" value="{{cfWhen.time}}" onChange="{{cfWhen.onTime}}"></div></div><p class="lbl">Alterar a data de um lançamento existente fica registrado nele (original e momento da correção).</p><button class="lnk" onClick="{{cfWhen.toAuto}}" style="align-self: flex-start; min-height: 40px; padding: 4px 0">Usar data e hora atuais</button></sc-if>
+</div></sc-if>
+<button class="btn" onClick="{{saveCf}}">Salvar</button>
+<button class="btn2" onClick="{{cancelCf}}">Cancelar</button>
+</sc-if>
+
+<!-- ================= MANUTENÇÃO ================= -->
+<sc-if value="{{isMaint}}" hint-placeholder-val="{{ false }}">
+<div class="tabs" role="tablist" aria-label="Manutenção"><sc-for list="{{mTabs}}" as="t" hint-placeholder-count="4"><button role="tab" style="{{t.style}}" onClick="{{t.go}}">{{t.n}}</button></sc-for></div>
+
+<sc-if value="{{mtRes}}" hint-placeholder-val="{{ true }}">
+<div class="card" style="gap: 14px">
+<div class="row" style="gap: 12px">
+<svg width="120" height="62" viewBox="0 0 110 58" aria-hidden="true" style="flex: none"><path d="M8 40c0-6 3-9 9-10l14-3 12-11c3-3 7-4 12-4h18c6 0 10 2 13 6l8 9c6 1 12 3 13 8v6c0 2-1 3-3 3H11c-2 0-3-1-3-3z" fill="#C9C6D9"/><path d="M45 18c2-2 5-3 9-3h17c4 0 7 1 9 4l5 7H37z" fill="#2A2742"/><circle cx="28" cy="45" r="8" fill="#1A1830"/><circle cx="28" cy="45" r="3.5" fill="#8E8AB5"/><circle cx="86" cy="45" r="8" fill="#1A1830"/><circle cx="86" cy="45" r="3.5" fill="#8E8AB5"/></svg>
+<div class="grow" style="display: flex; flex-direction: column; gap: 4px"><p class="h2">{{vName}}</p><p class="txt" style="font-weight: 600">{{vOdoNow}}</p><p class="lbl">{{vYear}}</p></div>
+</div>
+<div class="grid3" style="gap: 8px">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 6px; border-radius: 16px; border: 1.5px solid #3FE0A0; background: rgba(63,224,160,.12); min-width: 0"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3FE0A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span style="font: 700 15px Inter, sans-serif">Em dia</span><span class="lbl" style="color: #F3F1FF">{{mCntOk}}</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 6px; border-radius: 16px; border: 1.5px solid #F6C445; background: rgba(246,196,69,.12); min-width: 0"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F6C445" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v14H4zM4 10h16M8 3v5M16 3v5"/></svg><span style="font: 700 15px Inter, sans-serif">Próximas</span><span class="lbl" style="color: #F3F1FF">{{mCntNext}}</span></div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 6px; border-radius: 16px; border: 1.5px solid #FF6B7D; background: rgba(255,107,125,.12); min-width: 0"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FF6B7D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4l9 16H3zM12 10v4M12 17v.5"/></svg><span style="font: 700 15px Inter, sans-serif">Vencidas</span><span class="lbl" style="color: #F3F1FF">{{mCntLate}}</span></div>
+</div>
+</div>
+<div class="card" style="gap: 0">
+<p class="h2" style="padding-bottom: 6px">Próximas manutenções</p>
+<sc-for list="{{mNext}}" as="m" hint-placeholder-count="3"><div class="lrow"><span style="{{m.ic}}"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{m.path}}"/></svg></span><div class="grow"><p class="txt" style="font-weight: 600">{{m.n}}</p><p class="lbl">{{m.sub}}</p></div><span class="chip val" style="{{m.chip}}">{{m.badge}}</span></div></sc-for>
+<sc-if value="{{mNextEmpty}}" hint-placeholder-val="{{ false }}"><p class="mut" style="padding: 10px 0">Nenhuma manutenção próxima.</p></sc-if>
+</div>
+<div class="card" style="flex-direction: row; align-items: center; gap: 12px">
+<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#F3F1FF" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M14 3c3.3 0 6 1.1 6 2.5S17.3 8 14 8s-6-1.1-6-2.5S10.7 3 14 3zM8 5.5v4c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-4M10 12.3C9.7 12.1 9.4 12 9 12c-3.3 0-6 1.1-6 2.5S5.7 17 9 17s6-1.1 6-2.5M3 14.5v4C3 19.9 5.7 21 9 21s6-1.1 6-2.5v-4"/></svg>
+<div class="grow"><p class="txt" style="font-weight: 600">Previsão de custos</p><p class="lbl">Próximos 30 dias · estimativa</p></div>
+<span class="num val" style="font-size: 18px; padding: 8px 10px; border-radius: 14px; background: rgba(17,15,42,.6); color: #D2B8FA">{{mForecast}}</span>
+</div>
+<button class="btn" onClick="{{goMaintReg}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Registrar manutenção</button>
+<p class="lbl" style="padding: 0 2px">Freios e pneus exigem inspeção física: quilometragem não comprova condição segura. Ritmo usado nas estimativas: {{mKpd}}.</p>
+</sc-if>
+
+<sc-if value="{{mtAg}}" hint-placeholder-val="{{ false }}">
+<sc-for list="{{mAgenda}}" as="a" hint-placeholder-count="5">
+<div class="card" style="flex-direction: row; align-items: center; gap: 12px; padding: 14px">
+<span style="{{a.ic}}"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{a.path}}"/></svg></span>
+<div class="grow" style="display: flex; flex-direction: column; gap: 4px">
+<div class="sb" style="align-items: flex-start"><p class="txt grow" style="font-weight: 600">{{a.n}}</p><span class="chip val" style="{{a.chip}}">{{a.badge}}</span></div>
+<p class="lbl">{{a.every}}</p>
+<div class="bar" style="height: 8px"><div style="{{a.bar}}"></div></div>
+<p class="lbl" style="color: #E4DEFA">{{a.prog}}</p>
+</div>
+</div>
+</sc-for>
+<button class="btn2" onClick="{{goMaintItem}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16v14H4zM4 10h16M8 3v5M16 3v5"/></svg>Adicionar serviço / periodicidade</button>
+</sc-if>
+
+<sc-if value="{{mtHi}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="gap: 0; padding: 4px 8px 4px 16px">
+<sc-for list="{{mHist}}" as="h" hint-placeholder-count="4"><div class="lrow" style="align-items: flex-start; padding: 12px 0; position: relative"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C9B6F7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="{{h.path}}"/></svg><div class="grow"><p class="txt" style="font-weight: 600">{{h.n}}</p><p class="lbl">{{h.sub}}</p><sc-if value="{{h.hasObs}}" hint-placeholder-val="{{ false }}"><p class="lbl" style="color: #E4DEFA">{{h.obs}}</p></sc-if></div><p class="num val" style="font-size: 15px">{{h.v}}</p><button class="kebab" aria-label="Ações do registro" onClick="{{h.menu}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button><sc-if value="{{h.menuOpen}}" hint-placeholder-val="{{ false }}"><div style="position: absolute; right: 44px; top: 40px; z-index: 5; padding: 6px; border-radius: 14px; background: #2B2658; border: 1px solid rgba(181,138,245,.4); box-shadow: 0 12px 26px rgba(0,0,0,.5)"><button onClick="{{h.fix}}" style="min-height: 44px; padding: 0 18px; border: 0; background: transparent; color: #F3F1FF; font: 500 14px Inter, sans-serif; text-align: left; cursor: pointer; white-space: nowrap">Corrigir data e hora</button></div></sc-if></div></sc-for>
+<sc-if value="{{mHistEmpty}}" hint-placeholder-val="{{ false }}"><p class="mut" style="padding: 10px 0">Nenhuma manutenção registrada.</p></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{mtCo}}" hint-placeholder-val="{{ false }}">
+<div class="card hero" style="gap: 4px"><p class="lbl">Total registrado desde ago/2026</p><p class="num" style="font-size: 30px">{{mCostTotal}}</p></div>
+<div class="card" style="gap: 0"><sc-for list="{{mCostByItem}}" as="c" hint-placeholder-count="4"><div class="lrow"><div class="grow"><p class="txt" style="font-weight: 600">{{c.n}}</p><p class="lbl">{{c.cnt}}</p></div><p class="num val" style="font-size: 15px">{{c.v}}</p></div></sc-for></div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{isMaintReg}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="gap: 14px">
+<div class="row" style="align-items: flex-start"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F3F1FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 26px"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg><div class="grow" style="display: flex; flex-direction: column; gap: 4px"><p class="lbl" style="font-size: 14px; color: #E4DEFA">Serviço realizado</p><div class="row" style="flex-wrap: wrap; gap: 6px"><sc-for list="{{mfItems}}" as="o" hint-placeholder-count="5"><button class="pill" style="{{o.style}}" onClick="{{o.pick}}">{{o.n}}</button></sc-for></div></div></div>
+
+<div class="row" style="align-items: flex-start"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F3F1FF" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" style="flex: none; margin-top: 26px"><path d="M4 16a8 8 0 1 1 16 0M12 16l4-5"/></svg><div class="grow" style="display: flex; flex-direction: column; gap: 4px"><label class="lbl" for="mfk" style="font-size: 14px; color: #E4DEFA">Quilometragem (km)</label><input id="mfk" class="inp" inputmode="numeric" value="{{mfKm}}" onChange="{{onMfKm}}"></div></div>
+<div class="row" style="align-items: flex-start"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F3F1FF" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" style="flex: none; margin-top: 26px"><path d="M14 3c3.3 0 6 1.1 6 2.5S17.3 8 14 8s-6-1.1-6-2.5S10.7 3 14 3zM8 5.5v4c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-4"/></svg><div class="grow" style="display: flex; flex-direction: column; gap: 4px"><label class="lbl" for="mfc" style="font-size: 14px; color: #E4DEFA">Custo total (R$)</label><input id="mfc" class="inp" inputmode="decimal" placeholder="0,00" value="{{mfCost}}" onChange="{{onMfCost}}"></div></div>
+<div class="row" style="align-items: flex-start"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F3F1FF" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" style="flex: none; margin-top: 26px"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 12h6M9 16h6"/></svg><div class="grow" style="display: flex; flex-direction: column; gap: 4px"><label class="lbl" for="mfo" style="font-size: 14px; color: #E4DEFA">Observação (opcional)</label><input id="mfo" class="inp" value="{{mfObs}}" onChange="{{onMfObs}}"></div></div>
+<sc-if value="{{mfHasErr}}" hint-placeholder-val="{{ false }}"><p class="mut" style="color: #FF6B7D">{{mfErr}}</p></sc-if>
+<sc-if value="{{hasMSaved}}" hint-placeholder-val="{{ false }}"><p class="mut" style="color: #3FE0A0">{{mSavedMsg}}</p></sc-if>
+</div>
+<div class="card" style="gap: 6px; padding: 12px 14px; background: rgba(17,15,42,.55)">
+<sc-if value="{{mfWhen.auto}}" hint-placeholder-val="{{ true }}"><div class="row"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9B6F7" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 7v5l3.5 2"/></svg><p class="mut grow">{{mfWhen.nowText}}</p></div><button class="lnk" onClick="{{mfWhen.toRetro}}" style="align-self: flex-start; min-height: 40px; padding: 4px 0">Lançamento retroativo: alterar data e hora</button></sc-if>
+<sc-if value="{{mfWhen.retro}}" hint-placeholder-val="{{ false }}"><div class="grid2"><div><label class="lbl" for="mfWhend">Data (dd/mm/aaaa)</label><input id="mfWhend" class="inp" inputmode="numeric" value="{{mfWhen.date}}" onChange="{{mfWhen.onDate}}"></div><div><label class="lbl" for="mfWhent">Hora (hh:mm)</label><input id="mfWhent" class="inp" inputmode="numeric" value="{{mfWhen.time}}" onChange="{{mfWhen.onTime}}"></div></div><p class="lbl">O registro guarda também o momento real em que foi criado.</p><button class="lnk" onClick="{{mfWhen.toAuto}}" style="align-self: flex-start; min-height: 40px; padding: 4px 0">Usar data e hora atuais</button></sc-if>
+</div>
+<button class="btn" onClick="{{saveMaint}}" disabled="{{mfInvalid}}">Salvar manutenção</button>
+<div class="card" style="gap: 0">
+<div class="row" style="padding-bottom: 8px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F3F1FF" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M5 20v-5M12 20V9M19 20V4"/></svg><p class="h2">Próximo ciclo</p></div>
+<div class="lrow"><p class="txt grow">Próxima troca</p><p class="num val" style="font-size: 15px; color: #3FE0A0">{{mfNext}}</p></div>
+<div class="lrow"><p class="txt grow">Intervalo</p><p class="num val" style="font-size: 15px">{{mfInterval}}</p></div>
+<div class="lrow"><p class="txt grow">Previsão de custo</p><p class="num val" style="font-size: 15px">{{mfForecast}}</p></div>
+</div>
+</sc-if>
+
+<sc-if value="{{isMaintItem}}" hint-placeholder-val="{{ false }}">
+<div class="card" style="gap: 12px">
+<label class="lbl" for="min">Serviço</label><input id="min" class="inp" placeholder="Ex.: Correia dentada" value="{{miName}}" onChange="{{onMiName}}">
+<div class="grid2"><div><label class="lbl" for="mik">A cada (km)</label><input id="mik" class="inp" inputmode="numeric" value="{{miKm}}" onChange="{{onMiKm}}"></div><div><label class="lbl" for="mim">Ou a cada (meses)</label><input id="mim" class="inp" inputmode="numeric" value="{{miMonths}}" onChange="{{onMiMonths}}"></div></div>
+<p class="lbl">Informe ao menos um intervalo. Respeite as recomendações do fabricante.</p>
+</div>
+<button class="btn" onClick="{{saveMi}}" disabled="{{miInvalid}}">Adicionar à agenda</button>
+</sc-if>
+
+</div>
+
+<!-- ================= OFERTA: app da plataforma (simulado) + card ================= -->
+<sc-if value="{{isOffer}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; z-index: 30; background: #161A26; overflow: hidden">
+<div style="position: absolute; inset: 0; background: repeating-linear-gradient(28deg, rgba(120,130,160,.10) 0 2px, transparent 2px 46px), repeating-linear-gradient(-62deg, rgba(120,130,160,.08) 0 2px, transparent 2px 58px)"></div>
+<svg viewBox="0 0 390 300" width="100%" height="300" preserveAspectRatio="none" aria-hidden="true" style="position: absolute; top: 200px; left: 0"><path d="M70 230 C 120 160, 150 200, 200 130 S 300 110, 330 70" fill="none" stroke="#2F7BFF" stroke-width="6" stroke-linecap="round"/><circle cx="70" cy="230" r="9" fill="#29C46A" stroke="#FFFFFF" stroke-width="3"/><circle cx="330" cy="70" r="9" fill="#E8503A" stroke="#FFFFFF" stroke-width="3"/></svg>
+<div style="position: absolute; left: 10px; right: 10px; bottom: 12px; border-radius: 26px; background: #1E2131; border: 1px solid rgba(255,255,255,.08); padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 10px; color: #F2F3F7">
+<div class="sb"><span style="padding: 4px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,.3); font: 600 14px Inter, sans-serif">Categoria padrão</span><span style="font: 500 11px Inter, sans-serif; color: #9AA0B4">app da plataforma · simulado</span></div>
+<p style="margin: 0; font: 700 34px Inter, sans-serif">{{of.valueText}}</p>
+<p style="margin: 0; font: 500 14px Inter, sans-serif; color: #D5D8E3">{{of.pickText}}</p>
+<p style="margin: 0; font: 500 14px Inter, sans-serif; color: #D5D8E3">{{of.tripText}}</p>
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 8px 0; border-top: 1px solid rgba(255,255,255,.08)">
+<div class="row" style="align-items: flex-start"><span style="width: 12px; height: 12px; border-radius: 50%; border: 3px solid #FFFFFF; flex: none; margin-top: 4px"></span><div class="grow"><p style="margin: 0; font: 500 15px Inter, sans-serif">{{of.oTxt}}</p><p style="margin: 0; font: 400 12px Inter, sans-serif; color: #9AA0B4">{{of.oSub}}</p></div></div>
+<div class="row" style="align-items: flex-start"><span style="width: 12px; height: 12px; border-radius: 50%; background: #FFFFFF; flex: none; margin-top: 4px"></span><div class="grow"><p style="margin: 0; font: 500 15px Inter, sans-serif">{{of.dTxt}}</p><p style="margin: 0; font: 400 12px Inter, sans-serif; color: #9AA0B4">{{of.dSub}}</p></div></div>
+</div>
+<button onClick="{{closeOffer}}" style="min-height: 52px; border-radius: 14px; border: 0; background: #1463F3; color: #FFFFFF; font: 600 17px Inter, sans-serif; cursor: pointer">Aceitar</button>
+<button onClick="{{closeOffer}}" style="min-height: 48px; border-radius: 14px; border: 0; background: #3A3E50; color: #FFFFFF; font: 600 16px Inter, sans-serif; cursor: pointer">Recusar</button>
+<p style="margin: 0; font: 400 11px Inter, sans-serif; color: #9AA0B4; text-align: center">O motorista decide no app da plataforma. O Meu Destino não toca nesses botões nem detecta o aceite.</p>
+</div>
+<div role="status" aria-label="Análise do Meu Destino" style="{{of.cardStyle}}">
+<div class="sb" style="align-items: flex-start">
+<div class="grow" style="display: flex; flex-direction: column; gap: 2px">
+<span style="font: 500 14px Inter, sans-serif; color: #E4DEFA">{{of.impLabel}}</span>
+<span class="num fitL" style="font-size: 28px; line-height: 1.1; white-space: {{of.impWs}}; color: {{of.impColor}}">{{of.impText}}</span>
+<span style="font: 500 14px Inter, sans-serif; color: #E4DEFA">Nova média: <span style="font-weight: 700; color: #FFFFFF">{{of.newAvgText}}</span></span>
+</div>
+<span class="num val" style="font-size: 21px">{{of.rphText}}</span>
+</div>
+<div style="display: flex; justify-content: center"><span style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; border-radius: 999px; font: 700 16px Inter, sans-serif; background: {{of.c}}; color: {{of.fg}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{of.icon}}"/></svg>{{of.label}}</span></div>
+<sc-if value="{{of.hasReasons}}" hint-placeholder-val="{{ false }}"><div class="row" style="justify-content: center; flex-wrap: wrap; gap: 6px 14px"><sc-for list="{{of.reasons}}" as="r" hint-placeholder-count="2"><span class="row" style="gap: 6px; font: 500 14px Inter, sans-serif; color: #F3F1FF; min-width: 0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="{{r.path}}"/></svg>{{r.n}}</span></sc-for></div></sc-if>
+<sc-if value="{{of.hasNote}}" hint-placeholder-val="{{ false }}"><p class="lbl" style="text-align: center; font-size: 12px">{{of.note}}</p></sc-if>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{leave}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; z-index: 40; background: rgba(8,6,24,.7); display: flex; align-items: center; justify-content: center; padding: 24px">
+<div role="alertdialog" aria-label="Alterações não salvas" style="width: 100%; max-width: 340px; background: #241F4A; border: 1px solid rgba(181,138,245,.4); border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<p class="h2">Sair sem salvar?</p>
+<p class="mut">Você alterou dados deste formulário. Se sair agora, as alterações serão descartadas.</p>
+<button class="btn" onClick="{{leaveStay}}">Continuar editando</button>
+<button class="btn2" onClick="{{leaveGo}}" style="border-color: rgba(255,107,125,.7); color: #FF9AA6">Descartar e sair</button>
+</div>
+</div>
+</sc-if>
+
+<nav aria-label="Navegação principal" style="display: flex; gap: 4px; margin: 6px 12px 12px; padding: 6px; border-radius: 26px; background: rgba(33,30,64,.94); border: 1px solid rgba(181,138,245,.22); box-shadow: 0 -6px 24px rgba(8,6,24,.35)">
+<button class="navb" onClick="{{tabOp}}" style="{{navOp}}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11M3 11h18v6H3zM6 17v2M18 17v2"/></svg>Operação</button>
+<button class="navb" onClick="{{tabFin}}" style="{{navFin}}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 20h16M7 20v-6M12 20V6M17 20v-9"/></svg>Financeiro</button>
+<button class="navb" onClick="{{tabHist}}" style="{{navHist}}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Histórico</button>
+<button class="navb" onClick="{{tabCfg}}" style="{{navCfg}}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.5l2 2.6 3.2-.6.8 3.2 3 1.4-1.3 3 1.3 3-3 1.4-.8 3.2-3.2-.6-2 2.6-2-2.6-3.2.6-.8-3.2-3-1.4 1.3-3-1.3-3 3-1.4.8-3.2 3.2.6z"/></svg>Configurações</button>
+</nav>
+</div>
+</template>
+<script src="./src/runtime.js"></script>
+<script src="./src/logic.js"></script>
+<script src="./src/component.js"></script>
+<script>
+  (function () {
+    var m = MeuDestinoRuntime.mount(Component, document.getElementById('app'), document.getElementById('md-template'), {});
+    window.app = m.app; /* acesso para testes automatizados */
+  })();
+</script>
+</body>
+</html>

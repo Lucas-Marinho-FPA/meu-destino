@@ -1,0 +1,99 @@
+name: CI e publicação (GitHub Pages)
+
+on:
+  push:
+    branches: [main, develop, 'feature/**']
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  testes:
+    name: Testes (unitários + navegador local)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Suítes unitárias (173 + 127 + 92)
+        run: npm test
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Testes de ponta a ponta no site montado
+        run: |
+          node tools/build-site.mjs _site
+          node tools/serve.mjs 8080 _site &
+          sleep 1
+          BASE_URL=http://localhost:8080/ OUT_DIR=test-results/local npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: evidencias-local
+          path: test-results/
+
+  publicar:
+    name: Publicar no GitHub Pages
+    needs: testes
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node tools/build-site.mjs _site
+        env:
+          APP_VERSION: ${{ github.sha }}
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
+  validar-online:
+    name: Validar a versão publicada
+    needs: publicar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Aguardar a nova versão no endereço público
+        run: |
+          for i in $(seq 1 30); do
+            v=$(curl -fsS "${{ needs.publicar.outputs.page_url }}" | grep -o 'name="app-version" content="[^"]*"' | cut -d'"' -f4 || true)
+            echo "tentativa $i: versão publicada = $v"
+            [ "$v" = "${{ github.sha }}" ] && exit 0
+            sleep 10
+          done
+          echo "A versão publicada não atualizou a tempo"; exit 1
+      - name: Testes de ponta a ponta no GitHub Pages
+        run: BASE_URL=${{ needs.publicar.outputs.page_url }} EXPECT_VERSION=${{ github.sha }} OUT_DIR=test-results/online npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: evidencias-online
+          path: test-results/

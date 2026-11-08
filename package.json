@@ -1,0 +1,18 @@
+{
+  "name": "meu-destino",
+  "version": "0.5.0",
+  "private": true,
+  "description": "Meu Destino — protótipo navegável (web) do copiloto de operação e gestão financeira para motoristas de aplicativo.",
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node tools/serve.mjs 8080 .",
+    "test": "node tests/run-unit.js",
+    "test:e2e": "node tests/e2e/e2e.mjs",
+    "build:site": "node tools/build-site.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.65.0"
+  },
+  "engines": { "node": ">=20" }
+}

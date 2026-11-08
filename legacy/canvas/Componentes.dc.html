@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Meu Destino — componentes e estados</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#B58AF5}a:hover{color:#D2B8FA}
+</style>
+</helmet>
+<div style="width: 900px; height: 844px; box-sizing: border-box; padding: 36px; background: radial-gradient(90% 50% at 50% -10%, #34307A 0%, #221F4A 40%, #19182F 75%); color: #F3F1FF; font-family: Inter, sans-serif; display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font: 700 28px 'Space Grotesk', sans-serif">Componentes e estados</h1>
+<p style="margin: 0; font: 400 14px Inter, sans-serif; color: #B4B0D6">Cores ajustadas aos mockups aprovados (mint, amber, coral e orange diferem levemente dos tokens do PRD). Tipografia Space Grotesk + Inter.</p>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<p style="margin: 0; font: 600 12px Inter, sans-serif; letter-spacing: .1em; color: #B4B0D6">TOKENS DE COR</p>
+<div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 10px">
+<sc-for list="{{tokens}}" as="t" hint-placeholder-count="8">
+<div style="display: flex; flex-direction: column; gap: 6px"><div style="height: 52px; border-radius: 16px; border: 1px solid #3A3762; background: {{t.c}}"></div><span style="font: 600 13px Inter, sans-serif">{{t.n}}</span><span style="font: 400 11px Inter, sans-serif; color: #B4B0D6">{{t.c}} · {{t.u}}</span></div>
+</sc-for>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<p style="margin: 0; font: 600 12px Inter, sans-serif; letter-spacing: .1em; color: #B4B0D6">CARD FLUTUANTE · 3 CLASSIFICAÇÕES</p>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px">
+<sc-for list="{{cards}}" as="k" hint-placeholder-count="3">
+<div style="{{k.box}}">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px"><div style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font: 500 12px Inter, sans-serif; color: #E4DEFA">Impacto na média</span><span style="font: 600 22px 'Space Grotesk', sans-serif; white-space: nowrap; color: {{k.c}}">{{k.imp}}</span><span style="font: 500 12px Inter, sans-serif; color: #E4DEFA; white-space: nowrap">Nova média: <b style="color: #FFF">{{k.avg}}</b></span></div><span style="font: 600 16px 'Space Grotesk', sans-serif; white-space: nowrap">{{k.h}}</span></div>
+<div style="display: flex; justify-content: center"><span style="padding: 6px 16px; border-radius: 999px; font: 700 13px Inter, sans-serif; white-space: nowrap; background: {{k.c}}; color: {{k.fg}}">{{k.l}}</span></div>
+<sc-if value="{{k.hasR}}" hint-placeholder-val="{{ true }}"><p style="margin: 0; text-align: center; font: 500 12px Inter, sans-serif; color: #F3F1FF">{{k.r}}</p></sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<p style="margin: 0; font: 600 12px Inter, sans-serif; letter-spacing: .1em; color: #B4B0D6">BARRA DA META (OPERAÇÃO)</p>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px">
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="3">
+<div style="background: #292648; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 10px"><span style="font: 600 13px Inter, sans-serif">{{b.n}}</span><div style="height: 12px; border-radius: 999px; background: #19182F; overflow: hidden"><div style="{{b.s}}"></div></div><span style="font: 400 11px Inter, sans-serif; color: #B4B0D6">{{b.d}}</span></div>
+</sc-for>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<p style="margin: 0; font: 600 12px Inter, sans-serif; letter-spacing: .1em; color: #B4B0D6">ZONAS</p>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{zones}}" as="z" hint-placeholder-count="4"><span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font: 600 12px Inter, sans-serif; background: {{z.bg}}; color: {{z.c}}">{{z.n}}</span></sc-for>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<p style="margin: 0; font: 600 12px Inter, sans-serif; letter-spacing: .1em; color: #B4B0D6">MANUTENÇÃO</p>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{maint}}" as="m" hint-placeholder-count="4"><span style="padding: 6px 12px; border-radius: 999px; font: 600 12px Inter, sans-serif; background: {{m.bg}}; color: {{m.c}}">{{m.n}}</span></sc-for>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":900,"height":844}}'>
+function a(hex, al) { var r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16); return 'rgba(' + r + ',' + g + ',' + b + ',' + al + ')'; }
+class Component extends DCLogic {
+  renderVals() {
+    var cards = [
+      { l: 'Recomendada', c: '#3FE0A0', fg: '#0B2A1E', imp: '+R$ 0,42/km', avg: 'R$ 3,37/km', h: 'R$ 69,25/h', r: '' },
+      { l: 'Favorável com atenção', c: '#F6C445', fg: '#2B2108', imp: '+R$ 0,18/km', avg: 'R$ 3,37/km', h: 'R$ 58,40/h', r: 'Trânsito intenso · Terreno irregular' },
+      { l: 'Não recomendada', c: '#FF5C70', fg: '#FFFFFF', imp: '−R$ 0,27/km', avg: 'R$ 2,88/km', h: 'R$ 45,10/h', r: 'Zona de risco · Baixa demanda' }
+    ].map(function (k) { k.hasR = k.r !== ''; k.box = 'background: linear-gradient(160deg, rgba(40,34,86,.97), rgba(20,18,48,.97)); border: 2px solid ' + k.c + '; border-radius: 22px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 0 20px ' + a(k.c, 0.4); return k; });
+    var base = 'height: 100%; border-radius: 999px; ';
+    return {
+      tokens: [
+        { n: 'Midnight', c: '#19182F', u: 'fundo' }, { n: 'Indigo', c: '#292648', u: 'superfícies' }, { n: 'Lavender', c: '#B58AF5', u: 'ações' },
+        { n: 'Violet', c: '#8D79D9', u: 'secundário' }, { n: 'Mint', c: '#3FE0A0', u: 'favorável' }, { n: 'Amber', c: '#F6C445', u: 'atenção' },
+        { n: 'Coral', c: '#FF6B7D', u: 'desfavorável' }, { n: 'Orange', c: '#FF9F43', u: 'marca' }
+      ],
+      cards: cards,
+      bars: [
+        { n: 'Abaixo da meta', s: base + 'width: 78%; background: #F0C66F', d: 'Amber' },
+        { n: 'Na meta (até +R$ 0,50)', s: base + 'width: 100%; background: #69D6AE; box-shadow: 0 0 10px rgba(105,214,174,.6)', d: 'Mint, barra cheia' },
+        { n: 'Acima de meta + R$ 0,50', s: base + 'width: 100%; background: linear-gradient(90deg, #B58AF5, #6E8BFF); box-shadow: 0 0 14px rgba(140,140,255,.7)', d: 'Lavanda → azul (proposta)' }
+      ],
+      zones: [{ n: 'Verde · preferência', c: '#69D6AE' }, { n: 'Amarela · atenção', c: '#F0C66F' }, { n: 'Vermelha · restrição', c: '#FF7787' }, { n: 'Neutra · sem zona', c: '#8D79D9' }].map(function (z) { z.bg = a(z.c, 0.2); return z; }),
+      maint: [{ n: 'Em dia', c: '#69D6AE' }, { n: 'Próxima', c: '#F0C66F' }, { n: 'Vencida', c: '#FF7787' }, { n: 'Inspeção recomendada', c: '#FF7787' }].map(function (m) { m.bg = a(m.c, 0.15); return m; })
+    };
+  }
+}
+</script>
+</body>
+</html>
