@@ -9,7 +9,7 @@
 |---|---|---|
 | Preparação (análise do PRD, lacunas, plano da Sprint 0) | Concluída — documento v0.1 entregue | `claude/PREPARACAO_E_SPRINT_0_v0.1.md` |
 | Prototipação navegável (Frente 2), rodadas 1–5 | **Concluída**: a rodada 5 fecha o ciclo | Canvas "Meu Destino — Protótipo navegável da jornada", versão 1794094392-9b11; testes 173 + 127 + 92 aprovados (ver HANDOFF) |
-| Migração para o GitHub + publicação no GitHub Pages | Ver `docs/project/MIGRACAO.md` (estado e evidências) | Repositório `meu-destino`, CI com testes e validação online |
+| Migração para o GitHub + publicação no GitHub Pages | **Concluída** (08/11/2026) | https://lucas-marinho-fpa.github.io/meu-destino/; execução 42481585678; E2E online 51/51; ver `docs/project/MIGRACAO.md` |
 | Sprint 0 — Frente 1 (viabilidade técnica no aparelho) | **Não iniciada** | Depende do aparelho-alvo (L11) e de autorização |
 | Sprints 1–8 | Não iniciadas | — |
 

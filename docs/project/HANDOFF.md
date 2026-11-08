@@ -1,6 +1,6 @@
 # Meu Destino — Handoff
 
-**Atualizado em:** 07/11/2026 (migração para o GitHub)\
+**Atualizado em:** 08/11/2026 (migração para o GitHub concluída)\
 **Comece por aqui:** este repositório é a fonte oficial. Leia, nesta ordem: `README.md`, `docs/product/PRD.md`, `docs/project/ROADMAP.md`, `docs/decisions/DECISIONS.md`, `docs/architecture/ARCHITECTURE.md`, `docs/backlog/IDEAS_BACKLOG.md` e `.github/copilot-instructions.md`.
 
 ## 1. Estado atual
@@ -33,7 +33,8 @@
 | T-04 | Elétrico: o custo/km usa o último resultado até o fim do período, não ciclo por ciclo |
 | T-05 | Sem Service Worker: recarregar sem conexão depende do cache do navegador (ver P-11) |
 | T-06 | Portar as regras para Kotlin (`domain`) com os 392 cenários unitários como testes |
-| T-07 | Proteção da branch `main` (exigir CI verde e PR) — configurar nas definições do repositório |
+| T-07 | Proteção da branch `main` (exigir CI verde e PR): configurar em Settings → Branches (a sessão não tem acesso a essa API) |
+| T-08 | Atualizar as actions para versões com Node.js 24, por causa do aviso de descontinuação do Node.js 20 nos runners |
 
 T-02 (fontes remotas) foi resolvido na migração com as fontes locais.
 
@@ -69,5 +70,15 @@ T-02 (fontes remotas) foi resolvido na migração com as fontes locais.
 - **Critérios de aceite:** os 9 itens da Preparação §7 (`docs/project/ACCEPTANCE_CRITERIA.md` §3).
 - **Alternativa:** Sprint 1 (Fundação e Design System) com o protótipo como referência; exige decidir antes P-08, P-10, L11 e L13, e deixa o risco da captura em aberto.
 
-## 8. Publicação e validação online
-Ver `docs/project/MIGRACAO.md` (commit inicial, URL, execução do workflow e resultados).
+## 8. Publicação e validação online (estado real)
+| Item | Valor |
+|---|---|
+| Repositório | https://github.com/Lucas-Marinho-FPA/meu-destino (público) |
+| Aplicativo | https://lucas-marinho-fpa.github.io/meu-destino/ |
+| Commit inicial | `d55ca7e` |
+| Primeira publicação validada | `922e93e` (execução 42481585678: testes ✓, publicar ✓, validar online ✓) |
+| Branches | `main`, `develop`, `evidencias` (gerada pelo CI), `feature/ci-evidencias`, `feature/docs-migracao` (integradas) |
+| Testes | Jornadas 173/173 · Regressão 219/219 · E2E local 50/50 · **E2E no endereço público 51/51** |
+| Evidências | Branch `evidencias` (relatório + 26 capturas); detalhes em `docs/project/MIGRACAO.md` |
+
+**Próxima sessão:** comece pelo repositório (`git clone`, `npm ci`, `npm test`). Toda alteração passa por `feature/*` → `develop` → `main`; ao entrar em `main`, a publicação e a validação online são automáticas. Confira o resultado na aba Actions e na branch `evidencias`.
