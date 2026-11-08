@@ -1,4 +1,50 @@
-> **Documento histórico (06/11/2026).** Copiado sem alterações de conteúdo do Projeto (`claude/PREPARACAO_E_SPRINT_0_v0.1.md`). Várias decisões pendentes daqui já foram respondidas: veja `docs/decisions/DECISIONS.md` (ex.: L5 → D-01, L6 → D-22, navegação → D-08). Os critérios da Sprint 0 (§7) continuam válidos.
+> **Documento histórico com revisão (v0.2, 08/11/2026).** O texto original de 06/11/2026 (v0.1) está preservado sem alterações a partir da seção "Meu Destino — Etapa de Preparação e Plano da Sprint 0". Várias decisões pendentes daqui já foram respondidas (ver `docs/decisions/DECISIONS.md`). A revisão logo abaixo diz o que foi feito, o que foi comprovado e o que segue para a Sprint 1.
+
+# Revisão de 08/11/2026 — situação da Sprint 0
+
+## R1. O que foi investigado
+- Análise documental do PRD: consistência (C1–C9), lacunas (L1–L13), requisitos × hipóteses (H1–H8). Feita em 06/11.
+- **Prototipação navegável** (frente paralela à Sprint 0): rodadas 1–5 no Canvas, migração para o GitHub e correções da validação manual. Serviu para definir e testar interface e regras de negócio com dados simulados.
+- **Não foram executados** os experimentos E0–E8: nenhum projeto Android, APK, captura, OCR, overlay ou teste em aparelho. A revisão de políticas (E8) também não foi feita.
+
+## R2. O que foi comprovado (com evidência)
+- As regras de negócio e os fluxos do produto funcionam como especificado **no protótipo web**: 456 verificações unitárias e 59–60 jornadas no navegador (`docs/project/MIGRACAO.md`). Exceção: a falha aberta F-01 (tempo útil > tempo total), vista no Galaxy S25+.
+- O protótipo web abre e funciona no navegador do Galaxy S25+ pelo GitHub Pages (validação manual de 08/11).
+- **Nada foi comprovado sobre captura, OCR, overlay ou bolinha flutuante.** A interface de captura do protótipo é simulada.
+
+## R3. O que continua sendo hipótese
+- **H1–H8, todas:** leitura da tela de oferta do Uber Driver e do 99 Motorista; ausência de bloqueio de captura (FLAG_SECURE); aceitação pelas políticas do Google Play e pelos termos das plataformas; precisão e tempo do OCR; overlay sem bloquear toques; sobrevivência em segundo plano; identificação da plataforma; geocodificação dos endereços.
+- Também continua como hipótese o parágrafo "[HIPÓTESE]" da §4.2 (regras de Acessibilidade, MediaProjection no Android 14+, overlays no Android 12+). Nada disso foi verificado em fonte oficial nesta fase.
+
+## R4. O que depende de teste no aparelho (Galaxy S25+)
+- **E0:** build e instalação do APK de prova.
+- **E1:** captura por MediaProjection, quadro legível × preto, consentimento a cada sessão.
+- **E2:** leitura passiva por Accessibility, avaliando técnica e política separadamente.
+- **E3:** captura **acionada pelo motorista**. É o caminho da bolinha flutuante, que agora faz parte da definição do MVP (D-30).
+- **E4:** OCR local sobre capturas reais.
+- **E5:** bolinha flutuante e overlay sobre os apps de motorista, sem bloquear toques.
+- **E6:** ciclo de vida, bateria e memória durante o expediente.
+- **E7:** fluxo ponta a ponta.
+
+Dependências: versão do Android do Galaxy S25+ e quais apps são usados (Uber, 99 ou ambos), que respondem o resto da L11; dataset de capturas reais anonimizadas (D2, proposta ≥ 30 por plataforma).
+
+## R5. Riscos que permanecem para a captura
+- R1: mudanças de layout das plataformas quebram o OCR.
+- R2: captura inviável ou não permitida. Nesse caso o MVP (D-30) fica sem caminho: o plano B precisa ser decidido com o dono do produto, e a entrada manual é a alternativa já prevista na D-06.
+- R3: risco à conta do motorista se os termos proibirem ferramentas de terceiros.
+- Consentimento de captura a cada sessão pode exigir toques extras por expediente (a confirmar em E1).
+- Bloqueio de captura (FLAG_SECURE) resultaria em quadro preto (a confirmar em E1).
+- Consumo de bateria e encerramento do processo pelo sistema durante horas de uso (a confirmar em E6).
+
+## R6. O que deve alimentar a Sprint 1
+- Experimentos **E0–E8** como frente "prova técnica de captura" da Sprint 1 (D-31). Os critérios de aprovação da §7 continuam válidos como referência. As metas de latência, precisão e bateria seguem como **proposta**, pendente de aprovação.
+- **E3 + E5** em prioridade: a bolinha flutuante é o mecanismo do MVP.
+- **E8 antes de qualquer uso real contínuo**, com fontes oficiais datadas.
+- Protocolo de privacidade: só observar, sem tocar nos controles das plataformas; anonimizar capturas antes de qualquer commit, pois o repositório é **público**.
+- Código de prova isolado do app (ex.: `spikes/`), para não contaminar a arquitetura da Sprint 1.
+- Decisões ainda abertas que afetam a Sprint 1: L11 (completar), L13 (distribuição), P-16 (captura automática sem toque).
+
+---
 
 # Meu Destino — Etapa de Preparação e Plano da Sprint 0
 

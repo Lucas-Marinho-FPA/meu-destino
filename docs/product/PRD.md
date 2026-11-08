@@ -2,14 +2,14 @@
 
 ## Documento Mestre de Produto e Handoff Técnico
 
-**Versão:** 1.2 (validação manual, 08/11/2026; antes: 1.1 das rodadas 1–5)\
-**Arquivo:** cópia oficial no repositório (`docs/product/PRD.md`). Origem: `MEU_DESTINO_DOCUMENTO_MESTRE_v1.0.md` do Projeto, conteúdo v1.1.\
-**Status:** Base de referência para aprovação e prototipação\
+**Versão:** 1.3 (consolidação de 08/11/2026: definição do MVP e nova sequência de sprints; antes: 1.2 da validação manual e 1.1 das rodadas 1–5)\
+**Arquivo:** versão oficial no repositório (`docs/product/PRD.md`). No Projeto do claude.ai, a cópia fica em `MEU_DESTINO_DOCUMENTO_MESTRE_v1.0.md` (nome mantido).\
+**Status:** Base de referência do produto. Protótipo web concluído; app Android ainda não iniciado\
 **Plataforma inicial:** Android\
 **Estratégia:** MVP-first, offline-first, arquitetura modular e
 extensível
 
-> **O que mudou na v1.1:** apenas decisões aprovadas pelo dono do produto nas rodadas 1–5. Cada mudança está marcada com **[v1.1]** e listada no §14. Itens ainda sem decisão estão no §15 e **não** fazem parte do escopo aprovado.
+> **Como ler as marcações:** **[v1.1]** = decisões das rodadas 1–5; **[v1.2]** = correções da validação manual; **[v1.3]** = definição do MVP, nova sequência de sprints e falha do tempo útil. Todas estão no §14. Itens ainda sem decisão estão no §15 e **não** fazem parte do escopo aprovado.
 
 ------------------------------------------------------------------------
 
@@ -26,6 +26,51 @@ compreender o resultado financeiro da operação.
 O produto será inicialmente utilizado pelo próprio idealizador, mas
 deverá nascer com arquitetura preparada para futura comercialização e
 expansão para diferentes plataformas de transporte.
+
+## 1A. **[v1.3]** Estado atual (08/11/2026)
+
+| Existe | Ainda **não** existe |
+|---|---|
+| Protótipo web navegável (HTML/JavaScript) com interface e regras de negócio elaboradas e testadas | **Aplicativo Android** funcional |
+| Repositório público no GitHub (`main`, `develop`, `feature/*`) com histórico | **APK** instalável |
+| Publicação automática no GitHub Pages, com CI (testes antes de publicar e validação depois) | **Bolinha flutuante** e **overlay** integrados ao Uber Driver / 99 Motorista |
+| Testes automatizados: 456 verificações unitárias e 59–60 jornadas no navegador | **Captura real** de ofertas |
+| Persistência local no navegador e uso sem conexão depois de carregado | **OCR** integrado à operação real |
+
+- **O protótipo web não é o aplicativo Android.** Ele é a referência visual e funcional, e as regras de negócio e os testes dele devem ser reaproveitados no app.
+- A captura, o OCR e o overlay do protótipo são **simulados**.
+- Repositório: https://github.com/Lucas-Marinho-FPA/meu-destino · Protótipo publicado: https://lucas-marinho-fpa.github.io/meu-destino/ (versão de referência `e3bca2f`).
+
+## 1B. **[v1.3]** Definição oficial do MVP (D-30, aprovada pelo dono do produto em 08/11/2026)
+
+O MVP do Meu Destino estará pronto quando puder ser usado **numa operação real, no Galaxy S25+, sem depender de dados fictícios, exemplos ou simulações**. O motorista deverá conseguir:
+
+1. Abrir o aplicativo Meu Destino.
+2. Iniciar um expediente.
+3. Abrir o Uber Driver ou o 99 Motorista.
+4. Visualizar uma oferta de corrida.
+5. Acionar a **bolinha flutuante** do Meu Destino.
+6. Capturar as informações da oferta.
+7. Processar os dados com OCR.
+8. Ver os dados identificados para análise.
+9. Registrar as ofertas reais.
+10. Acompanhar os indicadores operacionais e financeiros.
+11. Encerrar o expediente.
+12. Conferir as corridas realizadas e canceladas.
+13. Registrar os dados reais de hodômetro, abastecimento e despesas.
+14. Consultar os resultados reais da operação.
+
+**Condições obrigatórias:**
+- persistência local e funcionamento offline nas funções essenciais;
+- captura dentro das permissões do Android e das políticas aplicáveis;
+- **nenhuma automação de aceite ou recusa** de corridas.
+
+**Critério fundamental:** o motorista consegue trabalhar normalmente e usar o Meu Destino para registrar a sua realidade.
+
+**Observações (sem decisão nova):**
+- Na definição acima, a captura é **acionada pelo motorista** pela bolinha flutuante. A captura totalmente automática, sem toque (PRD v1.0 e D-06), não faz parte do critério do MVP; se continua como requisito futuro é a pendência P-16.
+- A gestão territorial (zonas) e o motor de classificação das ofertas não aparecem explicitamente nos 14 passos nem na nova sequência de sprints: pendência P-17.
+- A viabilidade técnica da captura, do OCR e do overlay **ainda não foi comprovada** (Preparação, hipóteses H1–H8).
 
 ## 2. Problemas que resolve
 
@@ -191,6 +236,12 @@ presumir que todo km restante seja reposicionamento.
 
 **[v1.2] Tempo de operação (D-29):** tempo total = início → STOP, pelo relógio do aparelho; tempo útil = soma das durações das corridas realizadas; tempo não útil = total − útil. Indicadores: ganho por hora de expediente, ganho por hora útil, % produtivo e % não produtivo. Duração ausente não é estimada: o indicador é marcado como parcial.
 
+**[v1.3] Regra obrigatória e falha aberta (F-01):** **tempo útil ≤ tempo total** e **tempo não útil = tempo total − tempo útil**. Se os dados forem inconsistentes, o sistema deve sinalizar o problema e **não** apresentar os indicadores derivados (ganhos por hora, percentuais) como resultados válidos.
+- Na validação no Galaxy S25+ (08/11/2026) o protótipo mostrou tempo total de 1h16min e tempo útil de 2h36min, 1h20min acima do total.
+- O protótipo só exibiu um aviso e continuou mostrando os ganhos por hora.
+- **Status: PENDENTE** — diagnóstico e correção na evolução do aplicativo. Detalhes e causas a investigar em `docs/project/HANDOFF.md` (F-01).
+- O comportamento de tempo **não** está validado, apesar de os testes automatizados passarem.
+
 ### Módulo D --- Abastecimentos
 
 Registro de: - Data e hodômetro. - Combustível. - Litros. - Preço por
@@ -344,49 +395,26 @@ Privacidade: dados financeiros locais, imagens processadas localmente,
 descarte de capturas temporárias, permissões transparentes e nenhuma
 interação automática com apps externos.
 
-**[v1.1]** As regras validadas no protótipo (camada única de cálculo, modelo de registros, ciclos de combustível e rateio de fixos) estão descritas em `docs/architecture/ARCHITECTURE.md` e devem ser portadas para o módulo `domain` com os mesmos cenários de teste.
+**[v1.3]** A arquitetura acima é o **alvo** (app Android, ainda não iniciado). O que existe hoje é o protótipo web. As regras dele (camada única de cálculo, modelo de registros, ciclos de combustível, rateio de fixos) estão em `docs/architecture/ARCHITECTURE.md` e devem ser portadas para o módulo `domain` reaproveitando os mesmos cenários de teste, para não reimplementar cálculos de forma inconsistente.
 
 ## 9. Roadmap e sprints
 
-**Sprint 0 --- Prova de viabilidade** - Projeto Android mínimo. - Testar
-captura autorizada. - Testar OCR local. - Testar overlay sobre app
-externo. - Testar alternância entre apps. - Avaliar permissões,
-políticas, latência e consumo. - Documentar evidências e alternativas.
+**[v1.3] Nova sequência (D-31, direcionamento aprovado em 08/11/2026):** antecipar a construção do app Android e a investigação da captura, em vez de deixar a captura para a Sprint 7. É uma **sequência de planejamento**: não autoriza implementar tudo antecipadamente, e o escopo definitivo de cada sprint é apresentado e autorizado antes da execução.
 
-Critério: decisão técnica fundamentada antes de comprometer o produto
-com captura automática.
+| Sprint | Foco |
+|---|---|
+| 1 | **Fundação Android e prova técnica de captura:** projeto Android, ambiente, arquitetura modular, banco local, navegação básica, design system, permissões; investigação de captura de tela; prova técnica da bolinha flutuante e do overlay; investigação do OCR local; testes no Galaxy S25+ |
+| 2 | Captura e interpretação de ofertas: integração da captura, OCR, extração e normalização dos campos, identificação da plataforma, tratamento de erros e dados incompletos |
+| 3 | Motor operacional: integração das ofertas, registro operacional, corridas realizadas e canceladas, conferência no STOP, persistência e histórico, **correção das inconsistências de tempo (F-01)** |
+| 4 | Gestão do veículo e hodômetro: cadastro, hodômetro, quilometragem, expediente, conciliação |
+| 5 | Combustível e manutenção: abastecimentos, ciclos de tanque, consumo, custo por km, manutenções |
+| 6 | Gestão financeira: receitas, custos, despesas, resultados, relatórios e DRE (respeitando as decisões pendentes) |
+| 7 | Integração e estabilização operacional: integração completa, confiabilidade da captura, ajustes de interface, testes de uso real |
+| 8 | Validação final e preparação do MVP: testes com dados reais, correções, estabilidade, desempenho, segurança e proteção, APK instalável, preparação para uso real |
 
-**Sprint 1 --- Fundação e Design System** - Estrutura modular, banco
-local, navegação, identidade visual, componentes e configurações. -
-Critério: app instalável, navegável e com persistência.
-
-**Sprint 2 --- Motor de decisão** - Modelo de oferta, fórmulas, regras e
-testes. - Critério: cenários de cálculo aprovados.
-
-**Sprint 3 --- Gestão territorial** - Mapa, zonas, raios, origem/destino
-e sobreposições. - Critério: cenários geográficos aprovados.
-
-**Sprint 4 --- Controle do veículo** - Cadastro, foto do hodômetro, OCR,
-confirmação, expediente e histórico. - Critério: registro confiável com
-alternativa manual.
-
-**Sprint 5 --- Abastecimentos e manutenção** - Abastecimentos, ciclos de
-tanque, consumo, histórico e alertas. - Critério: ciclos e alertas
-corretos.
-
-**Sprint 6 --- Financeiro** - Receitas, despesas, custos, conciliação e
-relatórios. - Critério: resultados reconciliados sem duplicidade.
-
-**Sprint 7 --- Captura e overlay integrados** - Adaptador da primeira
-plataforma tecnicamente validada, OCR, confiança, card e ciclo de
-vida. - Critério: oferta de teste processada sem interferir nos
-controles externos.
-
-**Sprint 8 --- Estabilização** - Testes integrados, bateria, memória,
-offline, permissões, correções, documentação e APK. - Critério:
-requisitos obrigatórios aprovados e versão instalável entregue.
-
-**[v1.1]** O status atualizado de cada etapa está em `docs/project/ROADMAP.md`.
+- A **Sprint 0** (prova de viabilidade) fica como histórico e referência. A frente de prototipação foi concluída; os experimentos no aparelho (E0–E8) **não foram executados** e passam a fazer parte da Sprint 1 (`docs/project/PREPARACAO_E_SPRINT_0.md`).
+- A sequência anterior (v1.0, com captura na Sprint 7) está preservada como histórico em `docs/project/ROADMAP.md`.
+- Situação de cada etapa: `docs/project/ROADMAP.md`.
 
 ## 10. Controle de escopo
 
@@ -413,7 +441,14 @@ Conciliar quilometragem. - Gerar resumo diário e mensal. - Respeitar
 permissões e privacidade. - Não automatizar aceite/recusa. - Passar por
 testes de regressão. - Entregar APK e documentação.
 
-**[v1.1]** E também: - Registrar corridas realizadas sem classificar ofertas. - Atualizar os indicadores imediatamente a cada registro, correção ou exclusão. - Fechar o expediente por conferência, sem duplicar valores. - Identificar estimativas e medições. - Separar dados de exemplo de dados reais.
+**[v1.1–v1.2]** E também:
+- não exigir classificação das ofertas durante a operação; conferi-las no STOP (D-27);
+- atualizar os indicadores imediatamente a cada marcação ou correção;
+- fechar o expediente por conferência, sem duplicar valores;
+- identificar estimativas e medições;
+- separar dados de exemplo de dados reais.
+
+**[v1.3]** O critério de pronto do MVP é o **§1B** (uso real no Galaxy S25+, sem dados fictícios) e inclui **tempo útil ≤ tempo total** (F-01 resolvida).
 
 Requisitos externos não viáveis devem ser documentados com evidências e
 alternativa aprovada. Nunca declarar como concluído o que não foi
@@ -481,17 +516,18 @@ primeira versão certa.**
 | 5 | Cartão do veículo clicável, detalhes, cor e imagem local com alternativa | §6A |
 | Validação 08/11 | Conferência no STOP com todas as ofertas do expediente (substitui o registro manual) | §6 A, §6 C |
 | Validação 08/11 | Abastecimento como desembolso informativo; custos com memória de cálculo | §6 F |
-| Validação 08/11 | Tempo total, útil e não útil | §6 C |
+| Validação 08/11 | Tempo total, útil e não útil (implementado; **falhou na validação manual**, F-01) | §6 C |
+| Consolidação 08/11 | Definição oficial do MVP (D-30) | §1B |
+| Consolidação 08/11 | Nova sequência de sprints: Android e captura antecipados (D-31) | §9 |
+| Consolidação 08/11 | Regra: tempo útil ≤ tempo total; dados inconsistentes sinalizados, sem indicadores derivados como válidos | §6 C |
 
 O detalhamento (origem, justificativa e o que foi substituído) está em `docs/decisions/DECISIONS.md`.
 
-## 15. **[v1.1]** Pendências de decisão (não fazem parte do escopo aprovado)
+## 15. Pendências e falhas abertas (não fazem parte do escopo aprovado)
 
-Lista completa e atualizada em `docs/project/HANDOFF.md`. As principais:
-- Métodos de provisão e depreciação; demais regras de custos fixos além do rateio diário.
-- DRE: R$/km de referência no Financeiro após o fechamento (km total) × tela de encerramento (km produtivo).
-- Horários de operação: o tempo do expediente ainda é simulado no protótipo.
-- Custo de combustível durante o expediente sobre km produtivos (P-03).
-- Imagens licenciadas dos modelos de veículo.
-- Critério dos "50%" de "Favorável com atenção", limites de trânsito, risco e terreno.
-- Lacunas técnicas L5–L13 da Preparação (aparelho-alvo, distribuição, provedores de mapa etc.).
+A lista completa e atualizada fica **só** em `docs/project/HANDOFF.md` (§7), para não duplicar. As principais:
+- **F-01 (falha aberta):** tempo útil maior que o tempo total na validação no Galaxy S25+.
+- P-00 foto do veículo · P-01 provisões e depreciação da DRE · P-02 regras de custos fixos além do rateio · P-03 metodologia definitiva do combustível · P-04 pausas no expediente · P-06 ganho por km de corrida × por km total · P-07 regra dos 50% e limites.
+- P-11 reabertura offline (Service Worker) · P-13 tempo perdido em cancelamentos · P-14 corridas não capturadas · P-15 fixos de exemplo por padrão.
+- P-16 captura automática sem toque como requisito futuro · P-17 território e motor de decisão na nova sequência · P-18 forma de corrigir a F-01.
+- Lacunas da Preparação: L5–L13. A L11 está parcialmente respondida (aparelho: Galaxy S25+; versão do Android e apps usados pendentes).

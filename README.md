@@ -2,7 +2,7 @@
 
 Copiloto de operação e gestão financeira para motoristas de aplicativo: avaliar ofertas, registrar corridas, controlar quilometragem, abastecimentos e manutenção, e entender o resultado do dia e do mês.
 
-> **Estado atual:** protótipo **web navegável**, usado como referência visual e funcional do produto. O app Android definitivo ainda não foi iniciado (veja `docs/project/ROADMAP.md`).
+> **Estado atual:** protótipo **web navegável**, usado como referência visual e funcional do produto. **Não é o app Android**, que ainda não foi iniciado: não há APK, bolinha flutuante, overlay, captura real nem OCR real. O MVP está definido no PRD §1B, e a próxima etapa é a Sprint 1 (Fundação Android e prova técnica de captura), que depende de autorização. Veja `docs/project/HANDOFF.md`.
 > Captura de ofertas, OCR, sobreposição e geocodificação são **simulados**. **Nunca** há aceite ou recusa automática de corridas.
 
 - **App publicado:** https://lucas-marinho-fpa.github.io/meu-destino/
@@ -38,7 +38,7 @@ Também é possível abrir `index.html` direto no navegador. Os dados ficam no `
 
 ```bash
 npm ci                                  # instala o Playwright (somente desenvolvimento)
-npm test                                # suítes unitárias: 173 + 127 + 92 verificações
+npm test                                # suítes unitárias: 177 + 60 + 127 + 92 = 456 verificações
 npx playwright install chromium         # uma vez
 npm start &                             # em outro terminal
 BASE_URL=http://localhost:8080/ npm run test:e2e
@@ -81,7 +81,7 @@ Só o que estiver em `main` é publicado.
 | Critérios de aceite | `docs/project/ACCEPTANCE_CRITERIA.md` |
 | Handoff (estado e próxima etapa) | `docs/project/HANDOFF.md` |
 | Registro da migração | `docs/project/MIGRACAO.md` |
-| Preparação e plano da Sprint 0 | `docs/project/PREPARACAO_E_SPRINT_0.md` |
+| Preparação e plano da Sprint 0 (revisada; experimentos seguem para a Sprint 1) | `docs/project/PREPARACAO_E_SPRINT_0.md` |
 
 ## Licença
 
