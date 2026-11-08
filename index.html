@@ -142,10 +142,9 @@
 </sc-for>
 </div>
 <p class="lbl" style="padding: 0 4px">{{opHint}}</p>
-<button class="btn" onClick="{{goNewRide}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M12 5v14M5 12h14"/></svg>Registrar corrida</button>
 <div class="sim">
 <span class="simt">SIMULAÇÃO · APP DA PLATAFORMA</span>
-<p class="lbl">Horários vêm do relógio do aparelho; o tempo de operação avança 20 min por oferta só para simular. Aceite e conclusão são sempre informados por você.</p>
+<p class="lbl">Horários e tempo do expediente vêm do relógio do aparelho. O Meu Destino não detecta o aceite: no STOP (Encerrar) você marca quais ofertas foram realizadas ou canceladas.</p>
 <button class="btn2" onClick="{{loadDemo}}" disabled="{{demoDisabled}}" style="min-height: 44px; font-size: 13px">{{demoLabel}}</button>
 <button class="btn" onClick="{{nextOffer}}" disabled="{{noMoreOffers}}" style="box-shadow: none">{{nextOfferLabel}}</button>
 <div class="row" style="flex-wrap: wrap"><button class="pill" style="{{onStyle}}" onClick="{{setOnline}}">Online</button><button class="pill" style="{{offStyle}}" onClick="{{setOffline}}">Sem internet</button></div>
@@ -176,25 +175,25 @@
 <!-- ================= CONFERÊNCIA DO EXPEDIENTE ================= -->
 <sc-if value="{{isClose}}" hint-placeholder-val="{{ false }}">
 <div class="card" style="gap: 6px">
-<p class="txt" style="font-weight: 600">Confira o seu dia antes de fechar</p>
-<p class="mut">Os ganhos já foram calculados durante o expediente. Corrija o que estiver diferente e confirme para consolidar no histórico.</p>
+<p class="txt" style="font-weight: 600">Confira as corridas antes de fechar</p>
+<p class="mut">{{closeIntro}}</p>
+<sc-if value="{{closePending}}" hint-placeholder-val="{{ true }}"><p class="lbl" style="color: #F6C445">{{closePendingText}}</p></sc-if>
 </div>
 <div class="card" style="gap: 0; padding: 4px 16px">
 <sc-for list="{{closeRows}}" as="x" hint-placeholder-count="5"><div class="lrow"><p class="txt grow">{{x.k}}</p><p class="num val" style="font-size: 15px">{{x.v}}</p></div></sc-for>
 </div>
-<p class="sec">Registros do dia</p>
+<p class="sec">Ofertas e corridas do expediente</p>
 <sc-for list="{{closeItems}}" as="c" hint-placeholder-count="2">
 <div class="card" style="gap: 10px">
 <button onClick="{{c.open}}" style="display: flex; flex-direction: column; gap: 6px; padding: 0; border: 0; background: transparent; color: #F3F1FF; text-align: left; cursor: pointer; width: 100%">
 <span class="sb" style="align-items: flex-start; width: 100%"><span class="txt grow" style="font-weight: 600">{{c.t}}</span><span class="num val" style="font-size: 16px">{{c.v}}</span></span>
-<span class="row" style="flex-wrap: wrap; gap: 6px"><sc-if value="{{c.isDemo}}" hint-placeholder-val="{{ false }}"><span class="chip" style="background: rgba(246,196,69,.14); color: #F6C445">exemplo</span></sc-if><span class="lbl">{{c.s}}</span></span>
+<span class="row" style="flex-wrap: wrap; gap: 6px"><span class="chip" style="{{c.st}}">{{c.sl}}</span><sc-if value="{{c.isDemo}}" hint-placeholder-val="{{ false }}"><span class="chip" style="background: rgba(246,196,69,.14); color: #F6C445">exemplo</span></sc-if></span>
+<span class="lbl">{{c.s}}</span>
 </button>
 <div class="row" style="flex-wrap: wrap; gap: 8px"><sc-for list="{{c.acts}}" as="a" hint-placeholder-count="2"><button style="{{a.style}}" onClick="{{a.go}}">{{a.n}}</button></sc-for></div>
 </div>
 </sc-for>
-<sc-if value="{{closeEmpty}}" hint-placeholder-val="{{ false }}"><div class="card"><p class="mut">Nenhuma corrida registrada neste expediente.</p></div></sc-if>
-<button class="btn2" onClick="{{goNewRide}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M12 5v14M5 12h14"/></svg>Registrar corrida esquecida</button>
-<p class="lbl" style="padding: 0 2px">{{closeOffers}}</p>
+<sc-if value="{{closeEmpty}}" hint-placeholder-val="{{ false }}"><div class="card"><p class="mut">Nenhuma oferta recebida neste expediente.</p></div></sc-if>
 <button class="btn" onClick="{{goCameraFinal}}">{{closeBtn}}</button>
 </sc-if>
 
@@ -259,7 +258,12 @@
 <sc-for list="{{fr.rows}}" as="x" hint-placeholder-count="3"><div class="lrow"><p class="txt grow">{{x.k}}</p><p class="num val" style="font-size: 15px">{{x.v}}</p></div></sc-for>
 <div class="sb" style="padding-top: 10px"><p class="txt grow" style="font-weight: 700">{{fr.title}}</p><p class="num val" style="font-size: 18px; color: {{fr.c}}">{{fr.v}}</p></div>
 <p class="lbl" style="padding-top: 6px">{{fr.note}}</p>
-<button class="lnk" onClick="{{openDre}}" style="align-self: flex-start; padding-top: 6px">Ver DRE completa</button>
+<div class="row" style="flex-wrap: wrap; gap: 4px 18px; padding-top: 6px"><button class="lnk" onClick="{{goCostDay}}">Ver memória de cálculo</button><button class="lnk" onClick="{{openDre}}">Ver DRE completa</button></div>
+</div>
+<p class="sec">Tempo</p>
+<div class="card" style="gap: 0; padding: 6px 16px 12px">
+<sc-for list="{{ft.rows}}" as="x" hint-placeholder-count="6"><div class="lrow"><p class="txt grow">{{x.k}}</p><p class="num val" style="font-size: 15px; text-align: right">{{x.v}}</p></div></sc-for>
+<p class="lbl" style="padding-top: 6px">{{ft.note}}</p>
 </div>
 <button class="listbtn" onClick="{{goRides}}">
 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F3F1FF" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="flex: none"><path d="M4 20h16M7 20v-6M11 20V8M15 20v-9M19 20V5"/></svg>
@@ -357,7 +361,7 @@
 <sc-if value="{{isRideForm}}" hint-placeholder-val="{{ false }}">
 <div class="card" style="gap: 12px">
 <p class="h2" style="font-size: 18px">{{rfTitle}}</p>
-<div class="row" style="flex-wrap: wrap; gap: 6px"><sc-for list="{{rfKinds}}" as="k" hint-placeholder-count="2"><button class="pill" style="{{k.style}}" onClick="{{k.pick}}">{{k.n}}</button></sc-for></div>
+<sc-if value="{{rfShowKinds}}" hint-placeholder-val="{{ false }}"><div class="row" style="flex-wrap: wrap; gap: 6px"><sc-for list="{{rfKinds}}" as="k" hint-placeholder-count="2"><button class="pill" style="{{k.style}}" onClick="{{k.pick}}">{{k.n}}</button></sc-for></div></sc-if>
 <sc-if value="{{rfConc}}" hint-placeholder-val="{{ true }}">
 <sc-if value="{{rfHasOffers}}" hint-placeholder-val="{{ false }}">
 <p class="lbl">Preencher com uma oferta recebida (opcional)</p>
@@ -378,6 +382,36 @@
 </div>
 <sc-if value="{{rfHasErr}}" hint-placeholder-val="{{ false }}"><p class="mut" style="color: #FF6B7D; padding: 0 2px">{{rfErr}}</p></sc-if>
 <button class="btn" onClick="{{saveRf}}">Salvar</button>
+</sc-if>
+
+<!-- ================= MEMÓRIA DE CÁLCULO DOS CUSTOS DO DIA ================= -->
+<sc-if value="{{isCostDay}}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{cd.ok}}" hint-placeholder-val="{{ true }}">
+<div class="card" style="gap: 0; padding: 6px 16px 12px">
+<div class="lrow"><p class="txt grow">Ganhos</p><p class="num val" style="font-size: 15px">{{cd.receita}}</p></div>
+<div class="lrow"><p class="txt grow">(−) Custos do dia</p><p class="num val" style="font-size: 15px">{{cd.total}}</p></div>
+<div class="sb" style="padding-top: 10px"><p class="txt grow" style="font-weight: 700">{{cd.title}}</p><p class="num val" style="font-size: 18px; color: {{cd.resColor}}">{{cd.result}}</p></div>
+<p class="lbl" style="padding-top: 6px">{{cd.formula}}</p>
+</div>
+<p class="sec">Componentes dos custos</p>
+<sc-for list="{{cd.comps}}" as="c" hint-placeholder-count="4">
+<div class="card" style="gap: 6px; padding: 14px 16px">
+<div class="sb" style="align-items: flex-start"><p class="txt grow" style="font-weight: 600">{{c.n}}</p><p class="num val" style="font-size: 16px">{{c.v}}</p></div>
+<div class="row" style="flex-wrap: wrap; gap: 6px"><span class="chip" style="{{c.kc}}">{{c.kind}}</span><span class="lbl">{{c.base}}</span></div>
+<p class="lbl">{{c.note}}</p>
+</div>
+</sc-for>
+<p class="sec">Custos fixos considerados</p>
+<div class="card" style="gap: 0; padding: 4px 16px">
+<sc-for list="{{cd.fixos}}" as="f" hint-placeholder-count="6"><div class="lrow" style="align-items: flex-start; padding: 10px 0"><div class="grow" style="display: flex; flex-direction: column; gap: 2px"><p class="txt">{{f.n}}</p><p class="lbl">{{f.s}}</p></div><p class="num val" style="font-size: 14px">{{f.v}}</p></div></sc-for>
+</div>
+<p class="sec">Abastecimentos de hoje (desembolso)</p>
+<div class="card" style="gap: 8px">
+<sc-for list="{{cd.fuels}}" as="f" hint-placeholder-count="1"><div class="sb"><p class="txt grow">{{f.n}}</p><p class="num val" style="font-size: 14px">{{f.v}}</p></div></sc-for>
+<sc-if value="{{cd.fuelsNone}}" hint-placeholder-val="{{ false }}"><p class="mut">Nenhum abastecimento lançado hoje.</p></sc-if>
+<p class="lbl">Registrado, mas <b>não</b> descontado do resultado: o combustível já entra estimado pelo custo/km (evita contar duas vezes).</p>
+</div>
+</sc-if>
 </sc-if>
 
 <sc-if value="{{isDre}}" hint-placeholder-val="{{ false }}">

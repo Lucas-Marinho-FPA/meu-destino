@@ -39,7 +39,8 @@ legacy/canvas/        Arquivos originais do Canvas (somente referência; não s�
 Toda tela lê de **uma** fonte: `data()` = estado persistido + o registro do expediente em andamento (`liveRec`).
 - `aggregate(S, de, até, modoFixos)` → receita, taxas, corridas, km (do expediente, estimado e produtivo), tempo, combustível, despesas, manutenção e fixos, produzindo custos e resultado. Modos de fixos: `true` = mês integral, `'pro'` = rateio diário, `false` = sem fixos.
 - `aggMonths` / `mergeAgg` / `aggFor` / `evoPlan` → Dia, Semana, Mês, 3 meses, Ano e Histórico (todos somáveis).
-- `base(registros)` → soma só corridas registradas (`concluida` com valor e km) e taxas (`taxa`).
+- `base(registros)` → soma só as realizadas (`concluida` com valor e km) e as taxas (`taxa` e `cancelada` com taxa); devolve também o tempo útil (`min`), as corridas sem duração e a receita das corridas com duração.
+- `shiftMin()` → tempo total pelo relógio (início → agora/STOP). `timeStats(base, total)` → útil, não útil, %, R$/h de expediente e R$/h útil, com sinalização de parcial e de inconsistência.
 - `consolidate(registros)` → após o fechamento, recalcula o dia a partir dos registros (sem duplicar), com trilha.
 - Combustível: `fuelCycles` (cheio → cheio; `cpk = gasto ÷ km`). Cada dia é custeado pelo ciclo que contém o seu hodômetro; fora de ciclo usa o último medido e, sem nenhum, a referência (`cpkSource`). Elétrico: `energyStats` (medido entre cargas de 100%).
 - Fixos: `fixosProrated` = valor ÷ dias reais do mês, respeitando a competência.
@@ -47,7 +48,9 @@ Toda tela lê de **uma** fonte: `data()` = estado persistido + o registro do exp
 ## 5. Modelo de registros de corrida
 ```
 registro = { id, src: 'offer' | 'reg' | 'demo', st, i?, of?, recv?, km?, min?, fee?, at, doneAt?, ts, trail[], demo? }
-st: 'oferta' (oferta analisada; nunca é receita) | 'concluida' (corrida registrada) | 'taxa' (taxa de cancelamento) | 'excluida' (fora dos cálculos; mantida na trilha)
+st: 'oferta' (a conferir; nunca é receita) | 'concluida' (realizada) | 'cancelada' (taxa opcional em fee) | 'nao_aceita' (não marcada no STOP)
+    | 'taxa' / 'excluida' (registros manuais da rodada 5, mantidos por compatibilidade)
+fechamento: ofertas ainda 'oferta' → 'nao_aceita' (com trilha); o dia guarda rideList, min (total), minUtil e minUtilMissing
 ```
 
 ## 6. Persistência e offline
