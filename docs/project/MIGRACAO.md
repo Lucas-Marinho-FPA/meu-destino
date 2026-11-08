@@ -1,4 +1,4 @@
-# Registro da migração: Canvas → GitHub
+# Registro da migração: Canvas → GitHub (e evolução posterior)
 
 | Campo | Valor |
 |---|---|
@@ -86,3 +86,64 @@ A ativação do Pages foi confirmada pela própria execução: `configure-pages`
 - **Recarregar sem conexão falha** (`net::ERR_INTERNET_DISCONNECTED`): não há Service Worker. Com a página aberta, o app registra, calcula e persiste sem conexão. Decisão pendente P-11.
 - O acesso direto a `*.github.io` a partir da sessão de migração é bloqueado por política; por isso a validação online roda no GitHub Actions. O teste manual no celular do dono é recomendado como verificação final.
 - Avisos do GitHub Actions (não bloqueiam): ações com Node.js 20 forçadas a rodar em Node.js 24; `ubuntu-latest` migrará para Ubuntu 26.
+
+---
+
+## Evolução após a primeira publicação (08/11/2026)
+
+O histórico acima, da migração original do Canvas, fica preservado sem alterações. Esta seção registra o que veio depois.
+
+### 1. Segunda publicação (documentação)
+| Execução | Commit | Resultado |
+|---|---|---|
+| 42481919113 | `a2ad1a5` (merge de `feature/docs-migracao`) | Testes ✓ · Publicar ✓ · Validar online ✓. Confirmou que o endereço passa a exibir o novo commit após uma nova publicação |
+
+### 2. Correções da validação manual no Galaxy S25+
+**Problemas relatados pelo dono do produto:**
+1. o STOP mostrava só as 2 corridas de exemplo;
+2. os R$ 60,20 de custos estimados não tinham origem visível;
+3. o tempo de 2h41 não separava útil de não útil.
+
+**Correções (decisões D-27, D-28 e D-29):**
+- O STOP passou a listar todas as ofertas do expediente, com Realizada / Cancelada / Não aceita.
+- Os custos ganharam componentes separados e uma memória de cálculo. Os R$ 60,20 = R$ 7,53 de combustível (14,9 km × R$ 0,5053/km, do ciclo de 04/11: R$ 167,76 ÷ 332 km) + R$ 52,67 de fixos (R$ 1.580 ÷ 30 dias, dados de **exemplo**).
+- O tempo deixou de ser simulado e foi separado em total, útil e não útil.
+
+| Pull Request | Origem → destino | Merge | Conteúdo |
+|---|---|---|---|
+| #1 | `fix/validacao-manual-stop-custos-tempo` → `develop` | `fa94143` | Commits `4b2e1f5` (correções) e `016dc4f` (rótulos que cortavam em 390 px no CI) |
+| #2 | `develop` → `main` | `2bc4773` | Publicação das correções |
+| #3 | `feature/docs-registro-validacao` → `develop` | `0b97a7f` | Registro da publicação no HANDOFF |
+| #4 | `develop` → `main` | `63e1281` | Publicação do registro |
+| #5 | `feature/docs-handoff-encerramento` → `develop` | `3dda60c` | Ajuste do HANDOFF (encerramento conforme a D-27) |
+| #6 | `develop` → `main` | **`e3bca2f`** | Publicação; **versão de referência** do protótipo |
+
+| Execução | Commit | Resultado |
+|---|---|---|
+| 42488706030 | `2bc4773` | Testes ✓ · Publicar ✓ · Validar online ✓ |
+| 42489437394 | `63e1281` | Testes ✓ · Publicar ✓ · Validar online ✓ |
+| 42490114515 | `e3bca2f` | Testes ✓ · Publicar ✓ · Validar online ✓ (60/60) |
+
+**Testes após as correções:**
+
+| Suíte | Antes | Depois |
+|---|---|---|
+| Jornadas | 173/173 | 177/177 (adaptadas à D-27, marcadas `ADAPTADO D-27`; nenhuma removida) |
+| Validação manual (nova) | — | 60/60 |
+| Regressão | 219/219 | 219/219 (127 + 92; bloco de fechamento da 92 adaptado à D-27) |
+| E2E local | 50/50 | 59/59 |
+| E2E no endereço público | 51/51 | 60/60 |
+
+**Evidências:** a branch `evidencias` tem o relatório da execução 42490114515 (`e3bca2f`), `ORIGEM.txt` e 32 capturas.
+
+### 3. Falha encontrada depois da publicação — F-01 (pendente)
+Na validação manual no Galaxy S25+ (08/11), o Financeiro mostrou **tempo total 1h16min e operação útil 2h36min**. O app só exibiu um aviso e continuou mostrando os ganhos por hora.
+- Isso contraria a regra D-32 (tempo útil ≤ total; sem indicadores derivados quando os dados são inconsistentes).
+- **Status: PENDENTE**, sem causa confirmada. Diagnóstico e correção estão previstos na Sprint 3.
+- Os testes automatizados **não** detectaram a falha.
+- Detalhes, causas a investigar e propostas: `docs/project/HANDOFF.md` §7.1.
+
+### 4. Consolidação documental de fim de sessão
+- Branch `docs/consolidacao-sessao`, integrada por PR em `develop` e depois em `main`. **Nenhum arquivo de código foi alterado.**
+- Atualizados: PRD v1.3 (MVP D-30, sequência D-31, F-01), Roadmap v1.3, Preparação (revisão v0.2), Arquitetura (existente × alvo), Decisões (D-30 a D-32, status e propostas), Backlog (problemas abertos e IDEA-010 a 013), Handoff e este registro.
+- A versão do protótipo continua `e3bca2f`. Os commits de `main` posteriores a ele são só de documentação.
