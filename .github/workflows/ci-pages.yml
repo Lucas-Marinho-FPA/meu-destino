@@ -73,6 +73,8 @@ jobs:
     name: Validar a versão publicada
     needs: publicar
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # somente para gravar as evidências na branch "evidencias"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -97,3 +99,12 @@ jobs:
         with:
           name: evidencias-online
           path: test-results/
+      - name: Gravar evidências na branch "evidencias" (substitui a anterior)
+        if: always()
+        run: |
+          set -e
+          mkdir -p /tmp/ev && cp -r test-results/online/. /tmp/ev/
+          printf 'Commit validado: %s\nURL: %s\nExecução: %s/%s/actions/runs/%s\n' "${{ github.sha }}" "${{ needs.publicar.outputs.page_url }}" "${{ github.server_url }}" "${{ github.repository }}" "${{ github.run_id }}" > /tmp/ev/ORIGEM.txt
+          cd /tmp/ev && git init -q -b evidencias && git add -A
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -q -m "Evidências da validação online de ${{ github.sha }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" evidencias
