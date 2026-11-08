@@ -1,0 +1,81 @@
+
+## A. Integridade da página publicada
+OK    endereço responde 200 → 200
+OK    app montado → true
+     versão publicada: da90b2f0c4873f4c6bbe28fed73c838bc33758df
+OK    versão publicada = commit esperado → da90b2f0c4873f4c6bbe28fed73c838bc33758df
+OK    fontes locais carregadas (Inter, Space Grotesk) → true
+OK    sem recursos com erro → 
+OK    sem requisições externas → 
+OK    ocupa a largura do celular → 390
+
+## B. Veículo: cartão → detalhes → cor → editar → salvar → reabrir
+OK    tela Veículo → veh
+OK    sem botão separado "Editar dados do veículo" → 0
+OK    cartão abre detalhes → vehDetail
+OK    ilustração identificada como tal (não é foto real) → true
+OK    volta aos detalhes → vehDetail
+OK    cor exibida → true
+OK    reabrir: cor persistida → vermelho
+OK    reabrir: placa persistida → QWE-1A23
+
+## C. Operação: ofertas sem classificar durante o expediente (D-27)
+OK    expediente iniciado → true
+OK    sem pergunta de aceite/recusa no Meu Destino → 0
+OK    sem botão "Registrar corrida" na Operação → 0
+OK    4 ofertas no expediente, nenhuma é receita → 4
+OK    Operação avisa a conferência no STOP → true
+
+## D. Financeiro durante o expediente (marcação antecipada opcional, custos e tempo)
+OK    aviso de expediente em andamento → true
+OK    explica conferência e fechamento no STOP → true
+OK    ganhos zerados antes da conferência → true
+OK    marcada como realizada antes do STOP → 1
+OK    ganhos atualizados → true
+OK    combustível estimado em linha própria → true
+OK    fixos rateados em linha própria → true
+OK    registrados em linha própria → true
+OK    resultado parcial → true
+OK    tempo total, útil e não útil → true
+OK    ganho por hora útil separado do de expediente → true
+OK    memória de cálculo aberta → costDay
+OK    componentes com tipo (estimado/registrado) → true
+OK    base de cálculo do combustível → true
+OK    base de cálculo dos fixos → true
+
+## E. Encerramento: conferir todas as ofertas, corrigir, confirmar, histórico
+OK    tela de conferência → close
+OK    lista as 4 ofertas do expediente → 4
+OK    alerta da oferta sem marcação → true
+OK    correção volta à conferência → close
+OK    ganhos conferidos → true
+OK    um registro do dia (sem duplicar) → 76
+OK    dia consolidado = realizadas conferidas → 52
+OK    2 realizadas → 2
+OK    classificações finais → cancelada,concluida,concluida,nao_aceita
+OK    fechado e conferido → true
+OK    histórico de expedientes → true
+
+## F. Persistência e funcionamento sem conexão
+OK    recarregar: dia preservado → 76
+OK    recarregar: classificações preservadas → cancelada,concluida,concluida,nao_aceita
+OK    reabrir em outra aba: dados preservados → 76
+OK    sem conexão: confere e calcula → 1
+OK    sem conexão: ganhos atualizados → true
+     recarregar SEM conexão: falhou (page.reload: net::ERR_INTERNET_DISCONNECTED)
+
+## G. Varredura visual 320/360/390/412 px
+OK    320px: 23 telas sem corte, sobreposição ou erro → 
+OK    320px: console sem erros → 
+OK    360px: 23 telas sem corte, sobreposição ou erro → 
+OK    360px: console sem erros → 
+OK    390px: 23 telas sem corte, sobreposição ou erro → 
+OK    390px: console sem erros → 
+OK    412px: 23 telas sem corte, sobreposição ou erro → 
+OK    412px: console sem erros → 
+OK    console sem erros (jornadas) → 
+
+LIMITAÇÕES OBSERVADAS:
+- Recarregar a página sem conexão depende do cache do navegador: não há Service Worker (não existia no protótipo; adicioná-lo é decisão pendente).
+
+TOTAL: 60 passaram, 0 falharam (https://lucas-marinho-fpa.github.io/meu-destino/)
