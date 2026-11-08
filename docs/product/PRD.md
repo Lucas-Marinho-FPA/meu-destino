@@ -2,7 +2,7 @@
 
 ## Documento Mestre de Produto e Handoff Técnico
 
-**Versão:** 1.1 (consolidação das rodadas de prototipação 1–5, 07/11/2026)\
+**Versão:** 1.2 (validação manual, 08/11/2026; antes: 1.1 das rodadas 1–5)\
 **Arquivo:** cópia oficial no repositório (`docs/product/PRD.md`). Origem: `MEU_DESTINO_DOCUMENTO_MESTRE_v1.0.md` do Projeto, conteúdo v1.1.\
 **Status:** Base de referência para aprovação e prototipação\
 **Plataforma inicial:** Android\
@@ -130,13 +130,18 @@ A captura automática é um requisito de produto ainda sujeito a validação
 técnica. Não presumir que qualquer mecanismo de captura ou
 acessibilidade será permitido. Não automatizar aceite ou recusa.
 
-**[v1.1] Ofertas × corridas realizadas (decisão da rodada 5):**
-- Oferta capturada = **oferta analisada**. Nunca é receita e não exige nenhuma ação do motorista.
-- O motorista **não** marca aceitei, recusei ou terminei.
-- **Corrida realizada** é registrada pelo motorista com "Registrar corrida": valor recebido e km são obrigatórios; a duração é opcional. Pode ser preenchida a partir de uma oferta analisada (opcional, com valores conferidos pelo motorista).
-- **Taxa de cancelamento** é registrada à parte. Entra uma única vez como receita de taxas e não conta como corrida.
-- Cada registro pode ser corrigido ou excluído. Toda alteração fica numa trilha (data/hora, de → para). Um registro excluído sai dos cálculos, mas permanece na trilha.
-- Os indicadores do expediente (R$/km, R$/h, R$/corrida, km, custos, resultado) são **referência histórica** para avaliar as próximas ofertas. Não são garantia de rentabilidade de uma corrida futura, e a interface diz isso.
+**[v1.2] Ofertas × corridas realizadas (D-27, 08/11/2026; substitui a regra da rodada 5):**
+- O Meu Destino não detecta o aceite. Toda oferta do expediente fica registrada como **a conferir**, e nunca é receita por si só.
+- Durante a operação o motorista **não precisa marcar nada**.
+- No **STOP (Encerrar)** a conferência lista todas as ofertas do expediente. Para cada uma, o motorista marca:
+  - **Realizada:** os valores da oferta valem como recebidos, mas podem ser corrigidos (valor, km, duração);
+  - **Cancelada:** taxa de cancelamento opcional.
+- Ofertas não marcadas viram **Não aceita** ao confirmar, com trilha.
+- **Realizada** entra na receita, na quantidade de corridas, no km produtivo, no tempo útil e nos indicadores.
+- **Cancelada** não entra na receita de corridas, nas corridas, no km produtivo nem no tempo útil. Fica registrada para análise; a taxa, se houver, entra uma única vez como receita de taxas.
+- A classificação pode ser corrigida a qualquer momento, inclusive depois do fechamento, com trilha e reconsolidação do dia sem duplicar.
+- A marcação antecipada (antes do STOP) é opcional (I-05).
+- Os indicadores do expediente são referência histórica, não garantia de rentabilidade de uma corrida futura.
 
 **[v1.1] Meta do expediente (rodada 2):** limites configuráveis em R$/km, com os valores aprovados 2,50 / 2,99 / 3,00 (no protótipo: vermelho abaixo de 2,50 e meta 3,00). A média do expediente é ponderada por km produtivo. O valor exigido na próxima corrida é `(meta × (km + d) − receita) / d`, em que d = km médio por corrida.
 
@@ -182,7 +187,9 @@ presumir que todo km restante seja reposicionamento.
 - Data e hora vêm do relógio do aparelho, funcionam offline e registram o fuso. A criação e a alteração ficam registradas, e uma correção de data gera trilha; a data original nunca muda em silêncio.
 - Recuperação de expediente: se o app foi fechado sem encerrar, o expediente é retomado ao reabrir.
 
-**[v1.1] Encerramento como conferência (rodadas 4 e 5):** o fechamento **não cria** dados financeiros. Ele mostra o resumo do dia e os registros, permite corrigir, excluir ou incluir uma corrida esquecida e pede a confirmação. Depois disso, o hodômetro final consolida o dia no histórico, com trilha da conferência. Correções feitas após o fechamento reconsolidam o dia sem duplicar valores.
+**[v1.2] Encerramento como conferência (D-27):** o fechamento confere as ofertas do expediente (Realizada / Cancelada / Não aceita) e o hodômetro final consolida o dia no histórico, usando exatamente os registros conferidos, com trilha. Correções feitas após o fechamento reconsolidam o dia sem duplicar valores.
+
+**[v1.2] Tempo de operação (D-29):** tempo total = início → STOP, pelo relógio do aparelho; tempo útil = soma das durações das corridas realizadas; tempo não útil = total − útil. Indicadores: ganho por hora de expediente, ganho por hora útil, % produtivo e % não produtivo. Duração ausente não é estimada: o indicador é marcado como parcial.
 
 ### Módulo D --- Abastecimentos
 
@@ -259,9 +266,10 @@ subtraída novamente como provisão do mesmo evento.
 **[v1.1] Custos fixos (rodada 4):** o valor mensal é rateado pelos dias reais do mês (exemplo aprovado: R$ 600 em um mês de 30 dias = R$ 20 por dia). A semana é a soma dos seus dias e o mês usa o valor integral. O rateio respeita a competência, isto é, o mês de início de cada custo. Os métodos de provisão e depreciação seguem pendentes (§15).
 
 **[v1.1] Financeiro em dois momentos (rodada 5):**
-- **Durante o expediente:** a tela informa que o expediente está em andamento e que os valores se atualizam a cada corrida registrada, com fechamento definitivo no encerramento. Ela mostra os ganhos registrados, o número de corridas, os km das corridas (o km total vem do hodômetro no fechamento), R$/km, R$/h, R$/corrida, os custos **estimados** (combustível pelo custo/km e fixos rateados), os custos **registrados** (despesas e manutenções lançadas) e o resultado parcial estimado. Nada fica escondido até o encerramento.
+- **Durante o expediente:** a tela informa que o expediente está em andamento e que os valores contam só as corridas já marcadas como realizadas, com conferência e fechamento definitivo no STOP. Ela mostra os ganhos registrados, o número de corridas, os km das corridas (o km total vem do hodômetro no fechamento), R$/km, R$/h, R$/corrida, os custos **estimados** (combustível pelo custo/km e fixos rateados), os custos **registrados** (despesas e manutenções lançadas) e o resultado parcial estimado. Nada fica escondido até o encerramento.
 - **Após a conferência:** a tela indica "Fechado e conferido", com hora, e os valores ficam consolidados no histórico.
-- Durante o expediente, o combustível é estimado sobre os km produtivos registrados, porque o km total ainda não existe. Isso está identificado na tela e está pendente de confirmação formal (P-03).
+- Durante o expediente, o combustível é estimado sobre os km produtivos das corridas realizadas, porque o km total ainda não existe. Isso está identificado na tela e está pendente de confirmação formal (P-03).
+- **[v1.2] Transparência dos custos:** o resumo mostra separadamente combustível (estimado), custos fixos rateados (estimado), despesas e manutenção (registrado) e o resultado. A **memória de cálculo** detalha, para cada componente, o valor, a base de cálculo, a quantidade ou km e o tipo (estimado ou registrado), além dos fixos considerados e dos abastecimentos do dia. Os abastecimentos aparecem como desembolso **não** descontado do resultado (D-28). Custos fixos de exemplo ficam sinalizados.
 
 **[v1.1] Dados de exemplo × dados reais:** dados de demonstração são marcados como "exemplo", sinalizados nas telas de números e podem ser removidos sem afetar os registros reais.
 
@@ -471,6 +479,9 @@ primeira versão certa.**
 | 5 | Sem marcação de aceite/recusa; registro das corridas realizadas | §6 A |
 | 5 | Financeiro transparente durante o expediente; encerramento como conferência | §6 C, §6 F |
 | 5 | Cartão do veículo clicável, detalhes, cor e imagem local com alternativa | §6A |
+| Validação 08/11 | Conferência no STOP com todas as ofertas do expediente (substitui o registro manual) | §6 A, §6 C |
+| Validação 08/11 | Abastecimento como desembolso informativo; custos com memória de cálculo | §6 F |
+| Validação 08/11 | Tempo total, útil e não útil | §6 C |
 
 O detalhamento (origem, justificativa e o que foi substituído) está em `docs/decisions/DECISIONS.md`.
 

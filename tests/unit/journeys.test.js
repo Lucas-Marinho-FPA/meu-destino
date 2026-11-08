@@ -14,24 +14,27 @@ const C = M.Component, T0 = new Date(2026, 10, 7);
 const fresh = () => { Object.keys(mem).forEach(k => delete mem[k]); const a = new C({}); return [a, () => a.renderVals()]; };
 const startShift = V => { V().goCameraStart(); V().capture(); V().confirmOdo(); };
 const act = (V, list, txt, name) => { const it = V()[list].find(x => x.t.indexOf(txt) >= 0); const b = it.acts.find(x => x.n === name); if (!b) throw new Error('ação ' + name + ' em ' + txt); b.go(); };
+/* D-27: a corrida realizada vem de uma oferta do expediente marcada como "Realizada" na conferência; os valores são conferidos pelo motorista. */
+const realize = (app, V, recv, km, min) => { V().nextOffer(); V().closeOffer(); const r = app.state.rides[app.state.rides.length - 1]; app.rideActions(r).find(x => x.n === 'Realizada').go(); if (recv !== undefined) { app.rideActions(app.rideById(r.id)).find(x => x.n === 'Corrigir valores').go(); conclude(V, recv, km, min); } return r.id; };
 const conclude = (V, recv, km, min) => { V().onRfRecv({ target: { value: recv } }); V().onRfKm({ target: { value: km } }); V().onRfMin({ target: { value: min } }); V().saveRf(); };
 
-/* ---------- 1–9: corridas (ADAPTADO R5: sem aceite/recusa; registro da corrida realizada) ---------- */
+/* ---------- 1–9: corridas (ADAPTADO D-27, 08/11: o STOP lista todas as ofertas do expediente; nada a marcar durante a operação) ---------- */
 const [a, V] = fresh(); startShift(V);
 sec('1. Captura de oferta');
 V().nextOffer(); V().closeOffer();
-eq('oferta registrada no expediente', a.state.rides.length, 1); eq('estado = oferta analisada', a.state.rides[0].st, 'oferta');
-eq('oferta não é receita', a.base().rec, 0); eq('nenhuma pergunta de aceite na Operação (R5)', V().opRideTitle, undefined);
-sec('2. Sem classificação obrigatória (substitui "Aceite manual", R5)');
+eq('oferta registrada no expediente', a.state.rides.length, 1); eq('estado = a conferir', a.state.rides[0].st, 'oferta');
+eq('oferta não é receita', a.base().rec, 0); eq('nenhuma pergunta de aceite na Operação', V().opRideTitle, undefined);
+sec('2. Sem classificação obrigatória durante a operação');
 eq('oferta não exige ação para os indicadores', V().opTiles[3].v, 'R$ 0,00'); eq('trilha registra só a análise', a.state.rides[0].trail[0].acao, 'oferta analisada');
-sec('3. Registro da corrida realizada');
-V().goNewRide(); eq('abre formulário de registro', a.state.screen, 'rideForm'); eq('sugere ofertas recentes (opcional)', V().rfOffers.length, 1);
-V().rfOffers[0].pick(); eq('preenche com a oferta', V().rfRecv, '24,60');
+eq('Operação avisa a conferência no STOP', V().opNote, '1 oferta para conferir no STOP');
+sec('3. Marcar como realizada (valores da oferta, corrigíveis)');
+a.rideActions(a.state.rides[0]).find(x => x.n === 'Realizada').go();
+const r1 = a.state.rides[0]; eq('realizada', r1.st, 'concluida'); eq('valor recebido = valor da oferta', r1.recv, 24.6); eq('km da oferta', r1.km, 7.6); eq('duração da oferta', r1.min, 19);
+a.rideActions(a.rideById(r1.id)).find(x => x.n === 'Corrigir valores').go(); eq('abre correção', a.state.screen, 'rideForm');
 V().onRfRecv({ target: { value: '' } }); V().saveRf(); eq('valida valor', V().rfErr, 'Informe o valor recebido.');
 conclude(V, '25,00', '7,0', '20');
-const r1 = a.state.rides[1]; eq('registrada', r1.st, 'concluida'); eq('valor recebido', r1.recv, 25); eq('km', r1.km, 7); eq('duração', r1.min, 20); eq('vínculo com a oferta', r1.of, a.state.rides[0].id);
-eq('volta para Operação', a.state.screen, 'op');
-sec('4. Receita imediata');
+const r1b = a.rideById(r1.id); eq('valor recebido corrigido', r1b.recv, 25); eq('km', r1b.km, 7); eq('duração', r1b.min, 20); eq('trilha', r1b.trail.map(t => t.acao).join(','), 'oferta analisada,conferência,valores corrigidos');
+sec('4. Receita imediata após a marcação');
 eq('Operação: receita total', V().opTiles[3].v, 'R$ 25,00');
 const D1 = a.data(), dA = M.aggregate(D1, T0, T0, 'pro'); eq('camada única: receita do dia inclui expediente em andamento', dA.receita, 25); eq('marca dia em andamento', dA.live, true);
 V().tabFin(); eq('Financeiro: ganhos até agora', V().finRecText, 'R$ 25,00'); eq('Financeiro: rótulo', V().finResLabel, 'Ganhos até agora');
@@ -39,25 +42,28 @@ const mNov = M.aggregate(D1, new Date(2026, 10, 1), T0, true); const mNov0 = M.a
 eq('mês corrente recebe a corrida na hora', mNov.receita - mNov0.receita, 25);
 sec('5. Médias');
 V().tabOp(); eq('Por km = 25 / 7', V().opTiles[0].v, M.money(25 / 7)); eq('Por corrida', V().opTiles[2].v, 'R$ 25,00');
-eq('Por hora = 25 / (20 min de operação simulada ≥ 20 min da corrida)', V().opTiles[1].v, M.money(25 / (20 / 60)));
+NOW = new Date(2026, 10, 7, 13, 40); eq('Por hora (expediente) = 25 / 20 min de relógio (ADAPTADO: sem tempo simulado; o relógio avança 20 min)', V().opTiles[1].v, M.money(25 / (20 / 60))); NOW = new Date(2026, 10, 7, 13, 20);
 eq('aviso: média é referência, não garantia', V().opHint.indexOf('não garantia') > 0, true);
-sec('6. Taxa de cancelamento (sem duplicidade)');
-V().nextOffer(); V().closeOffer(); V().goNewRide(); V().rfKinds[1].pick(); V().saveRf(); eq('valida taxa', V().rfErr, 'Informe o valor da taxa de cancelamento.');
+sec('6. Cancelada com taxa (sem duplicidade)');
+V().nextOffer(); V().closeOffer(); const c6 = a.state.rides[1];
+a.rideActions(c6).find(x => x.n === 'Cancelada').go(); a.rideActions(a.rideById(c6.id)).find(x => x.n === 'Informar taxa').go();
+V().onRfFee({ target: { value: 'x' } }); V().saveRf(); eq('valida taxa', V().rfErr, 'Informe o valor da taxa de cancelamento.');
 V().onRfFee({ target: { value: '4,00' } }); V().saveRf();
-let b = a.base(); eq('taxa: estado', a.state.rides[3].st, 'taxa'); eq('taxa entra uma vez', b.fees, 4); eq('não conta como corrida', b.n, 1); eq('receita total = 25 + 4', V().opTiles[3].v, 'R$ 29,00');
-V().nextOffer(); V().closeOffer(); eq('oferta sem registro não gera receita', a.base().rec + a.base().fees, 29);
+let b = a.base(); eq('cancelada: estado', a.rideById(c6.id).st, 'cancelada'); eq('taxa entra uma vez', b.fees, 4); eq('não conta como corrida', b.n, 1); eq('não entra no km produtivo', b.km, 7); eq('receita total = 25 + 4', V().opTiles[3].v, 'R$ 29,00');
+V().nextOffer(); V().closeOffer(); eq('oferta sem marcação não gera receita', a.base().rec + a.base().fees, 29);
 sec('7. Fechamento como conferência');
-V().goClose(); const nBefore = a.state.rides.length; eq('conferência lista só os registros', V().closeItems.length, 2);
-eq('sem pendência de decisão (R5)', V().closePending, false); eq('ofertas só informativas', V().closeOffers, '3 ofertas analisadas no expediente (não entram na receita).');
-eq('resumo: ganhos', V().closeRows[0].v, 'R$ 29,00');
+V().goClose(); const nBefore = a.state.rides.length; eq('conferência lista TODAS as ofertas do expediente', V().closeItems.length, 3);
+eq('alerta de oferta sem marcação', V().closePending, true); eq('status visível', V().closeItems.map(c => c.sl).join(','), 'Realizada,Cancelada,A conferir');
+eq('resumo: ganhos', V().closeRows[3].v, 'R$ 29,00');
 const mBeforeClose = M.aggregate(a.data(), new Date(2026, 10, 1), T0, true).receita;
 V().goCameraFinal(); V().capture(); V().confirmOdo();
 eq('fechamento não cria registros', a.state.rides.length, nBefore);
-const day = a.state.days[a.state.days.length - 1]; eq('registro do dia = receita registrada', day.rec + day.fees, 29); eq('trilha da conferência', day.ts.review.corridas, 1);
+eq('não marcada vira "não aceita" com trilha', a.state.rides[2].st + ' / ' + a.state.rides[2].trail.slice(-1)[0].para, 'nao_aceita / Não aceita (não marcada)');
+const day = a.state.days[a.state.days.length - 1]; eq('registro do dia = receita conferida', day.rec + day.fees, 29); eq('trilha da conferência', day.ts.review.realizadas + '/' + day.ts.review.canceladas + '/' + day.ts.review.naoAceitas, '1/1/1');
 sec('8. Correção após o fechamento (trilha)');
-V().tabFin(); V().goRides(); eq('Detalhamento: registros clicáveis', typeof V().rideRows[0].open, 'function');
-eq('nenhum registro sem valor', V().rideRows.filter(r => r.v === '—').length, 0);
-V().rideRows.find(r => r.sl === 'Registrada').open(); eq('abre detalhe', a.state.screen, 'ride'); eq('status claro', V().rd.sl, 'Registrada');
+V().tabFin(); V().goRides(); eq('lista clicável', typeof V().rideRows[0].open, 'function');
+eq('nenhuma realizada sem valor', V().rideRows.filter(r => r.sl === 'Realizada' && r.v === '—').length, 0);
+V().rideRows.find(r => r.sl === 'Realizada').open(); eq('abre detalhe', a.state.screen, 'ride'); eq('status claro', V().rd.sl, 'Realizada');
 V().rd.acts.find(x => x.n === 'Corrigir valores').go(); V().onRfRecv({ target: { value: '30,00' } }); V().saveRf();
 eq('volta ao detalhe', a.state.screen, 'ride'); eq('trilha: valores corrigidos', V().rd.trail[0].s.indexOf('valores corrigidos') === 0, true);
 const day2 = a.state.days[a.state.days.length - 1]; eq('dia reconsolidado (30 + 4)', day2.rec + day2.fees, 34); eq('alteração registrada no dia', day2.ts.edits.length >= 1, true);
@@ -130,7 +136,7 @@ G().evoHits[1].pick(); const rows = G().evoPtRows; const num = t => parseFloat(t
 eq('ponto: total = soma da composição', num(rows[0].v), num(rows[1].v) + num(rows[2].v) + num(rows[3].v) + num(rows[4].v), 0.02);
 sec('22. Integração entre módulos');
 { const [i, I] = fresh(); startShift(I); const evoBefore = M.aggFor(i.data(), M.evoPlan(i.data(), 'mes').pts.slice(-1)[0] || { from: new Date(2026, 10, 1), to: T0 });
-  I().nextOffer(); I().closeOffer(); I().goNewRide(); conclude(I, '40,00', '10', '25');
+  realize(i, I, '40,00', '10', '25'); /* ADAPTADO D-27 */
   eq('Operação atualizada', I().opTiles[3].v, 'R$ 40,00');
   I().tabFin(); eq('Financeiro atualizado', I().finRecText, 'R$ 40,00'); eq('DRE parcial disponível', I().finCanOpen, true);
   I().openDre(); eq('DRE identifica resultado parcial', I().dreRows.some(r => r.k === 'Resultado parcial (estimado)'), true);
@@ -146,10 +152,10 @@ sec('Jornada: cadastro → expediente → fechamento → reabrir o app');
   J().cfgGroups[0].go(); J().goVehForm(); J().vfMotors.find(x => x.n === 'Flex').pick(); J().onVfBrand({ target: { value: 'Fiat' } }); J().onVfModel({ target: { value: 'Argo' } }); J().onVfOdo({ target: { value: '1.279' } }); J().onVfTank({ target: { value: '48' } }); J().onVfRef({ target: { value: '11,5' } }); J().saveVf();
   eq('veículo cadastrado', j.state.vehicle.model, 'Argo');
   J().tabOp(); startShift(J); eq('expediente iniciado', !!j.state.shift, true);
-  J().nextOffer(); J().closeOffer(); J().goNewRide(); J().rfOffers[0].pick(); conclude(J, '26,00', '7,6', '19');
+  realize(j, J, '26,00', '7,6', '19'); /* ADAPTADO D-27 */
   J().nextOffer(); J().closeOffer();
   /* reabrir durante o expediente */
-  const k1 = new C({}); eq('reabrir: expediente recuperado', !!k1.state.shift, true); eq('reabrir: abre na Operação', k1.state.screen, 'op'); eq('reabrir: ofertas e registros mantidos', k1.state.rides.length, 3);
+  const k1 = new C({}); eq('reabrir: expediente recuperado', !!k1.state.shift, true); eq('reabrir: abre na Operação', k1.state.screen, 'op'); eq('reabrir: ofertas e marcações mantidas', k1.state.rides.length, 2);
   eq('reabrir: datas restauradas como data', k1.state.shift.startedAt instanceof Date, true);
   J().tabFin(); eq('indicadores durante o expediente', J().finRecText, 'R$ 26,00');
   J().tabCfg(); J().cfgGroups[4].go(); J().goFuelForm(); J().ffTypes.find(x => x.n === 'Etanol').pick(); J().onFfL({ target: { value: '30' } }); J().onFfP({ target: { value: '4,19' } }); J().onFfOdo({ target: { value: '10.240' } }); J().saveFuel();
@@ -176,34 +182,34 @@ sec('R5-1. Veículo: cartão → detalhes → cor → editar → persistir (offl
   eq('salvar volta aos detalhes', v.state.screen, 'vehDetail'); eq('cor alterada', v.state.vehicle.color, 'vermelho'); eq('ilustração acompanha a cor', W().vBodyFill, 'fill: #C8414B');
   const v2 = new C({}); eq('reabrir: cor persistida', v2.state.vehicle.color, 'vermelho'); eq('reabrir: modelo', v2.state.vehicle.model, 'Corolla');
   eq('nenhuma imagem remota referenciada', /https?:\/\//.test(W().vPhotoSrc), false); }
-sec('R5-2. Operação: registrar corridas sem classificar ofertas');
+sec('R5-2. Operação: corridas sem classificar durante a operação (ADAPTADO D-27)');
 { const [o, O] = fresh(); startShift(O); O().nextOffer(); O().closeOffer(); O().nextOffer(); O().closeOffer();
   eq('ofertas não alteram indicadores', O().opTiles[3].v, 'R$ 0,00');
-  O().goNewRide(); conclude(O, '18,50', '5,5', ''); eq('duração opcional', o.state.rides[2].min, null);
-  O().goNewRide(); conclude(O, '30,00', '9', '28');
+  const id1 = realize(o, O, '18,50', '5,5', ''); eq('duração pode faltar (dado incompleto, não inventado)', o.rideById(id1).min, null);
+  realize(o, O, '30,00', '9', '28');
   eq('receita total', O().opTiles[3].v, 'R$ 48,50'); eq('Por km', O().opTiles[0].v, M.money(48.5 / 14.5)); eq('Por corrida', O().opTiles[2].v, M.money(24.25));
-  eq('nota da Operação', O().opNote, '2 corridas registradas');
-  eq('nenhuma ação Aceitei/Não aceitei disponível', JSON.stringify(o.state.rides.filter(r => r.st === 'oferta').map(r => o.rideActions(r).map(x => x.n))), '[["Registrar como corrida"],["Registrar como corrida"]]');
+  eq('nota da Operação', O().opNote, '2 ofertas para conferir no STOP · 2 realizadas');
+  eq('ofertas oferecem só a conferência (sem aceite/recusa)', JSON.stringify(o.state.rides.filter(r => r.st === 'oferta').map(r => o.rideActions(r).map(x => x.n))), '[["Realizada","Cancelada"],["Realizada","Cancelada"]]');
   eq('integridade: ids únicos', new Set(o.state.rides.map(r => r.id)).size, o.state.rides.length);
-  O().tabFin(); O().goRides(); O().rideRows[0].open(); O().rd.acts.find(x => x.n === 'Excluir').go(); O().rd.acts.find(x => x.n === 'Confirmar exclusão').go();
-  eq('excluir tira dos cálculos', o.base().rec, 18.5); eq('excluído fica na trilha', o.state.rides.some(r => r.st === 'excluida'), true); eq('some do detalhamento', O().rideRows.length, 1); }
+  O().tabFin(); O().goRides(); O().rideRows.find(r => r.v === 'R$ 30,00').open(); O().rd.acts.find(x => x.n === 'Não aceita').go();
+  eq('corrigir classificação tira dos cálculos', o.base().rec, 18.5); eq('trilha preservada', o.rideById(O().rd ? o.state.rideSel : 0).trail.length >= 3, true); eq('continua na lista (não some)', O().rideRows.length, 4); }
 sec('R5-3. Financeiro durante o expediente');
 { const [f, F] = fresh(); startShift(F); F().tabFin(); let fv = F();
   eq('aviso de expediente em andamento', fv.finLive, true); eq('explica atualização e fechamento', fv.finLiveText.indexOf('fechamento definitivo') > 0, true);
   eq('não esconde o financeiro', fv.finHas, true); eq('ganhos zerados', fv.finRecText, 'R$ 0,00');
-  F().tabOp(); F().goNewRide(); conclude(F, '40,00', '10', '30'); F().tabFin(); fv = F();
+  F().tabOp(); realize(f, F, '40,00', '10', '30'); NOW = new Date(2026, 10, 7, 13, 50); F().tabFin(); fv = F(); /* ADAPTADO D-27; relógio avança 30 min */
   eq('ganhos parciais', fv.finRecText, 'R$ 40,00'); eq('km das corridas', fv.finSide[1].v + ' ' + fv.finSide[1].u, '10,0 km prod.'); eq('explica km total no fechamento', fv.finKmNote.indexOf('hodômetro') > 0, true);
-  eq('Por km', fv.finInd[0].v, 'R$ 4,00'); eq('Por hora', fv.finInd[1].v, M.money(40 / 0.5));
+  eq('Por km', fv.finInd[0].v, 'R$ 4,00'); eq('Por hora de expediente', fv.finInd[1].v, M.money(40 / 0.5));
   const A = M.aggregate(f.data(), T0, T0, 'pro');
-  eq('custos estimados (combustível + fixos rateados)', fv.fr.rows[1].v, M.money(A.fuelCost + A.fixos)); eq('custos registrados', fv.fr.rows[2].v, M.money(A.vexp + A.maint));
+  eq('combustível estimado (linha própria)', fv.fr.rows[1].v, M.money(A.fuelCost)); eq('fixos rateados (linha própria)', fv.fr.rows[2].v, M.money(A.fixos)); eq('custos registrados', fv.fr.rows[3].v, M.money(A.vexp + A.maint)); /* ADAPTADO: custos separados por componente */
   eq('resultado parcial', fv.fr.v, M.money(A.resultado)); eq('rótulo parcial', fv.fr.title, 'Resultado parcial (estimado)');
-  F().tabOp(); F().goNewRide(); conclude(F, '20,00', '5', ''); F().tabFin(); eq('atualiza após novo registro', F().finRecText, 'R$ 60,00'); }
+  F().tabOp(); realize(f, F, '20,00', '5', ''); F().tabFin(); eq('atualiza após nova marcação', F().finRecText, 'R$ 60,00'); NOW = new Date(2026, 10, 7, 13, 20); }
 sec('R5-4. Encerramento: conferir, corrigir, confirmar, consolidar');
-{ const [e, E] = fresh(); startShift(E); E().goNewRide(); conclude(E, '22,00', '6', '18'); E().goNewRide(); conclude(E, '35,00', '11', '30');
-  E().goClose(); eq('conferência mostra ganhos', E().closeRows[0].v, 'R$ 57,00'); eq('lista 2 registros', E().closeItems.length, 2);
+{ const [e, E] = fresh(); startShift(E); realize(e, E, '22,00', '6', '18'); realize(e, E, '35,00', '11', '30'); /* ADAPTADO D-27 */
+  E().goClose(); eq('conferência mostra ganhos', E().closeRows[3].v, 'R$ 57,00'); eq('lista 2 registros', E().closeItems.length, 2);
   E().closeItems[0].acts.find(x => x.n === 'Corrigir valores').go(); E().onRfRecv({ target: { value: '24,00' } }); E().saveRf();
-  eq('correção volta à conferência', e.state.screen, 'close'); eq('ganhos corrigidos', E().closeRows[0].v, 'R$ 59,00');
-  E().goNewRide(); conclude(E, '10,00', '3', ''); eq('corrida esquecida incluída', E().closeRows[0].v, 'R$ 69,00');
+  eq('correção volta à conferência', e.state.screen, 'close'); eq('ganhos corrigidos', E().closeRows[3].v, 'R$ 59,00');
+  E().nextOffer(); E().closeOffer(); E().goClose(); const lastIt = E().closeItems.find(c => c.sl === 'A conferir'); lastIt.acts.find(x => x.n === 'Realizada').go(); const lid = e.state.rides[e.state.rides.length - 1].id; e.rideActions(e.rideById(lid)).find(x => x.n === 'Corrigir valores').go(); conclude(E, '10,00', '3', ''); eq('oferta marcada na conferência entra', E().closeRows[3].v, 'R$ 69,00'); /* ADAPTADO D-27: sem registro manual */
   const nDays = e.state.days.length; E().goCameraFinal(); E().capture(); E().confirmOdo();
   eq('um registro do dia', e.state.days.length, nDays + 1); const d = e.state.days[e.state.days.length - 1]; eq('dia consolidado', d.rec + d.fees, 69); eq('corridas do dia', d.rides, 3);
   E().goFinDetail(); eq('fechado e conferido', E().finDone, true); eq('valor no financeiro após fechar', E().finRecText, 'R$ 69,00');

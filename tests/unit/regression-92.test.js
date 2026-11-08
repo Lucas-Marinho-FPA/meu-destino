@@ -68,13 +68,14 @@ eq('oferta 5 atenção combinada', labels[4], 'Favorável com atenção [Terreno
 V().loadDemo(); eq('exemplo confirmado entra na base', app.base().n, 2);
 const b2 = app.base(); const v2 = V(); eq('Por km = média ponderada', v2.opTiles[0].v, 'R$ ' + R(b2.rec / b2.km));
 eq('próxima corrida recalcula a meta exata', (b2.rec + M.requiredPerKm(b2, 3, b2.km / b2.n) * (b2.km / b2.n)) / (b2.km + b2.km / b2.n), 3);
-/* ADAPTADO R5 (decisão do PO): sem marcação de aceite/recusa. Mesmo cenário, pelo registro das corridas realizadas:
-   Jardim Sul → taxa de cancelamento 5,00; Vila Nova → Centro não vira corrida (só oferta analisada); demais 4 ofertas registradas com os valores da oferta. */
+/* ADAPTADO D-27 (validação manual, 08/11): o STOP lista todas as ofertas do expediente e o motorista marca cada uma.
+   Mesmo cenário: Jardim Sul → cancelada com taxa 5,00; Vila Nova → Centro sem marcação (vira "não aceita" no fechamento); demais 4 → realizadas. */
 V().goClose();
 const offers = app.state.rides.filter(r => r.st === 'oferta');
 const name = r => { const o = M.OFFERS[r.i]; return M.PLACES[o.o].n + ' → ' + (o.d ? M.PLACES[o.d].n : ''); };
-offers.forEach(r => { const n = name(r); if (n.indexOf('Jardim Sul') >= 0 || n.indexOf('Vila Nova → Centro') === 0) return; app.rideActions(r)[0].go(); V().saveRf(); });
-V().goNewRide(); V().rfKinds[1].pick(); V().onRfFee({ target: { value: '5,00' } }); V().saveRf();
+offers.forEach(r => { const n = name(r); if (n.indexOf('Vila Nova → Centro') === 0) return;
+  if (n.indexOf('Jardim Sul') >= 0) { app.rideActions(r).find(x => x.n === 'Cancelada').go(); const rr = app.rideById(r.id); app.rideActions(rr).find(x => x.n === 'Informar taxa').go(); V().onRfFee({ target: { value: '5,00' } }); V().saveRf(); return; }
+  app.rideActions(r).find(x => x.n === 'Realizada').go(); });
 const fb = app.base(); eq('realizadas = 6', fb.n, 6); eq('taxa recebida', fb.fees, 5); eq('cancelamentos', fb.canc, 1);
 V().goCameraFinal(); V().capture(); const ff = V().confirmFacts; eq('km do expediente apresentado', ff[0].k, 'Km do expediente');
 V().confirmOdo(); const vc = V(); eq('tela Expediente encerrado', vc.isClosed, true); eq('resumo pronto', vc.cl.ok, true);

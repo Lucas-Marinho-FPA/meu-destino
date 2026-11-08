@@ -32,7 +32,10 @@ Acrescentados na v1.1:
 | Jornada | Critério | Teste |
 |---|---|---|
 | Veículo | O cartão abre os detalhes; os detalhes mostram a identificação visual e os 10 campos; a edição parte dos detalhes, sem botão separado; a cor persiste ao reabrir; a ilustração não é apresentada como foto | `journeys` R5-1, `e2e` B |
-| Operação | Iniciar expediente; oferta não vira receita nem exige aceite/recusa; registrar corrida (valor + km; duração opcional); taxa de cancelamento; corrigir e excluir com trilha; médias atualizadas | `journeys` 1–9 e R5-2, `e2e` C e D |
+| Operação | Iniciar expediente; oferta não vira receita nem exige marcação durante a operação; nenhum botão de aceite/recusa | `journeys` 1–2 e R5-2, `e2e` C |
+| Conferência no STOP (D-27) | Lista todas as ofertas do expediente, sem exemplos misturados; Realizada/Cancelada; não marcadas → Não aceita; classificação corrigível com trilha; recarregar no STOP não perde marcações; fechamento usa exatamente os registros conferidos; novo expediente não mistura registros | `validacao-manual` A, `journeys` 3–9, `e2e` E |
+| Custos (D-28) | Memória de cálculo reproduz o resultado; componentes com base, quantidade e tipo; fixos de exemplo sinalizados; abastecimento não descontado de novo; despesa registrada entra | `validacao-manual` B, `e2e` D |
+| Tempo (D-29) | Total = início → STOP; útil = soma das realizadas; não útil = diferença; R$/h de expediente × útil; parcial quando falta duração; cancelamento fora do tempo útil | `validacao-manual` C, `e2e` D |
 | Financeiro | Durante o expediente: aviso explícito, ganhos, km, médias, custos estimados × registrados, resultado parcial; nada escondido até o fechamento | `journeys` R5-3, `e2e` D |
 | Encerramento | Conferência → corrigir/incluir → confirmar → hodômetro final; um único registro do dia; histórico diário e semanal; sem duplicação | `journeys` 7–9 e R5-4, `e2e` E |
 | Combustível e custos | Custo/km por ciclo; Flex; híbrido sem recarga; elétrico medido × estimado; fixos rateados; evolutivos nos 6 períodos | `journeys` 10–22, `regression-127` |
@@ -41,7 +44,7 @@ Acrescentados na v1.1:
 | Responsividade | 320/360/390/412 px sem corte, sobreposição, "undefined" ou "NaN"; console sem erros | `e2e` G |
 | Publicação | Endereço público responde; recursos carregam; sem requisições externas; a versão publicada corresponde ao commit | `e2e` A (job `validar-online`) |
 
-**Referência de regressão:** 173/173 (jornadas) e 219/219 (127 + 92). Nenhum teste pode ser removido para fazer a bateria passar.
+**Referência de regressão:** jornadas 177/177 (173 + 4 verificações acrescentadas na adaptação D-27), validação manual 60/60, regressão 219/219 (127 + 92), E2E 59/59 local (60/60 no endereço público, com a verificação de versão). Nenhum teste pode ser removido para fazer a bateria passar.
 
 ## 3. Sprint 0 — Frente 1 (Preparação §7)
 Mantidos sem alteração em `docs/project/PREPARACAO_E_SPRINT_0.md`, §7.
