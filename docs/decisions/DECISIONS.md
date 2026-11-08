@@ -30,13 +30,18 @@ Somente decisões **aprovadas pelo dono do produto**. Propostas e pendências fi
 | D-24 | 5 | Cartão do veículo clicável → detalhes (com identificação visual e cor); edição a partir dos detalhes; sem botão separado | Botão "Editar dados do veículo" | Implementado |
 | D-25 | 5 | Imagem do veículo do modelo/geração/cor com direitos de uso, armazenada localmente, com alternativa | — | Parcial: só a alternativa (ilustração); sem imagem licenciada |
 | D-26 | Migração · 07/11 | GitHub como fonte oficial; repositório **público** `meu-destino`; publicação no **GitHub Pages**; desenvolvimento direto no repositório; testes automatizados + validação no ambiente online; documentação no repositório; branches `main` (estável), `develop` (integração) e `feature/*` | Protótipo no Canvas como fonte | Ver `docs/project/MIGRACAO.md` |
+| D-27 | Validação manual · 08/11 | **Conferência no STOP com todas as ofertas do expediente.** O app não detecta aceite, então nada é marcado durante a operação. No STOP o motorista marca cada oferta como **Realizada** (valor e km da oferta, corrigíveis) ou **Cancelada** (taxa opcional). As não marcadas viram **Não aceita** no fechamento, com trilha. Só as realizadas entram na receita, nas corridas, no km produtivo e no tempo útil | D-22 (registro manual "Registrar corrida" durante a operação) | Implementado (`fix/validacao-manual-stop-custos-tempo`) |
+| D-28 | Validação manual · 08/11 | Abastecimento do dia **não** é descontado do resultado: o combustível entra estimado (km × custo/km) e a compra aparece como desembolso registrado no detalhamento (confirma o PRD §6 F) | — | Implementado |
+| D-29 | Validação manual · 08/11 | Tempo: **total** = início → STOP (relógio do aparelho); **útil** = soma das durações das corridas realizadas; **não útil** = total − útil. Indicadores: ganho por hora de expediente, ganho por hora útil, % produtivo e % não produtivo. Duração ausente não é inventada: o indicador fica "parcial". Cancelamento não entra no tempo útil; o tempo perdido com cancelamentos ainda não é medido | Tempo simulado (+20 min por oferta) do protótipo | Implementado |
 
 ## Decisões de implementação tomadas nesta rodada (dentro do escopo, para validação)
 Não alteram regra de negócio, mas são escolhas de interface que o dono do produto deve confirmar.
-- **I-01:** "Registrar corrida" pede valor recebido e km (obrigatórios); a duração é opcional, para reduzir digitação. O R$/h do expediente usa o tempo do expediente.
-- **I-02:** O pré-preenchimento a partir de uma oferta analisada é opcional (até 3 ofertas recentes), e os valores são conferidos pelo motorista.
-- **I-03:** A exclusão de um registro pede confirmação e preserva a trilha.
+- **I-01:** ~~"Registrar corrida" com duração opcional~~ → **substituída pela D-27** (o registro manual saiu da Operação). Na correção de valores, a duração continua podendo ficar em branco; nesse caso o tempo útil fica "parcial" (D-29).
+- **I-02:** ~~Pré-preenchimento opcional a partir de uma oferta~~ → **substituída pela D-27** (a realizada já usa os valores da oferta, corrigíveis).
+- **I-03:** A exclusão de um registro manual (rodada 5) pede confirmação e preserva a trilha. Nas ofertas, em vez de excluir, corrige-se a classificação (Realizada / Cancelada / Não aceita).
 - **I-04:** As cores disponíveis para o veículo são Branco, Prata, Cinza, Preto, Vermelho, Azul, Bege/Marrom, Verde e Outra.
+- **I-05 (08/11):** A conferência pode ser feita **antes** do STOP, de forma opcional, em Financeiro → Detalhamento das corridas. Isso permite ver ganhos parciais durante o expediente sem tornar a marcação obrigatória.
+- **I-06 (08/11):** No detalhamento, o custo/km aparece com 4 casas decimais para que a conta possa ser conferida (ex.: R$ 0,5053 × 14,9 km = R$ 7,53).
 
 ## Preservado sem alteração nesta rodada
 Identidade visual; navegação de 4 abas; jornada de hodômetro e recuperação de expediente; correções retroativas; regras de combustível e custos (D-16 a D-19); evolutivos; manutenção; território; card da oferta; persistência.

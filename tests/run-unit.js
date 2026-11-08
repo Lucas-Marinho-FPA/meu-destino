@@ -1,7 +1,7 @@
 /* Executa as suítes unitárias (Node, sem navegador) e consolida o resultado. */
 const { spawnSync } = require('child_process');
 const path = require('path');
-const suites = ['journeys.test.js', 'regression-127.test.js', 'regression-92.test.js'];
+const suites = ['journeys.test.js', 'regression-127.test.js', 'regression-92.test.js', 'validacao-manual.test.js'];
 let failed = 0;
 for (const s of suites) {
   const r = spawnSync(process.execPath, [path.join(__dirname, 'unit', s)], { encoding: 'utf8' });

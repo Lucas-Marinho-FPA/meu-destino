@@ -3,7 +3,7 @@
 function tile(k, v, c, path, small) {
   return {
     k: k, v: v, path: path,
-    box: 'display: flex; align-items: center; gap: ' + (small ? '8px' : '12px') + '; padding: ' + (small ? '12px 10px' : '16px 14px') + '; border-radius: 20px; min-width: 0; background: linear-gradient(100deg, ' + alpha(c, 0.22) + ' 0%, rgba(30,27,58,.92) 55%); border: 1.5px solid ' + alpha(c, 0.7) + '; border-left-width: 3px',
+    box: 'display: flex; align-items: center; gap: ' + (small ? '6px' : '12px') + '; padding: ' + (small ? '12px 8px' : '16px 14px') + '; border-radius: 20px; min-width: 0; background: linear-gradient(100deg, ' + alpha(c, 0.22) + ' 0%, rgba(30,27,58,.92) 55%); border: 1.5px solid ' + alpha(c, 0.7) + '; border-left-width: 3px',
     ic: 'color: ' + c + '; display: flex; flex: none'
   };
 }
@@ -19,8 +19,8 @@ function parseWhen(ds, ts) { var d = parseDate(ds); if (!d) return null; var m =
 var ROOTS = { home: 1, op: 1, fin: 1, hist: 1, cfg: 1 };
 var FORMS = { rideForm: 'rf', vehForm: 'vf', fuelForm: 'ff', chargeForm: 'ch', costForm: 'cf', maintReg: 'mf', maintItem: 'mi', zoneForm: 'zf', editDate: 'ed' };
 var TITLES = {
-  recover: ['Recuperação', 'Expediente pendente'], camera: ['Hodômetro', 'Registro'], confirm: ['Hodômetro', 'Confirmar leitura'], close: ['Encerramento', 'Conferência do dia'],
-  closed: ['', 'Fechamento do expediente'], rides: ['Financeiro', 'Detalhamento das corridas'], ride: ['Corridas', 'Registro da corrida'], rideForm: ['Corridas', 'Registro'], dre: ['Financeiro', 'DRE do expediente'], offerSim: ['', 'Simulação da corrida'],
+  recover: ['Recuperação', 'Expediente pendente'], camera: ['Hodômetro', 'Registro'], confirm: ['Hodômetro', 'Confirmar leitura'], close: ['Encerramento', 'Conferência das corridas'],
+  closed: ['', 'Fechamento do expediente'], rides: ['Financeiro', 'Corridas do expediente'], ride: ['Corridas', 'Corrida'], costDay: ['Financeiro', 'Memória de cálculo'], rideForm: ['Corridas', 'Registro'], dre: ['Financeiro', 'DRE do expediente'], offerSim: ['', 'Simulação da corrida'],
   veh: ['Configurações', 'Veículo'], vehDetail: ['Veículo', 'Detalhes do veículo'], vehForm: ['Veículo', 'Editar dados do veículo'], cfgMeta: ['Configurações', 'Metas e limites'], terr: ['Configurações', 'Território'], zoneForm: ['Território', 'Nova zona'],
   pref: ['Configurações', 'Preferências'], fuel: ['Configurações', 'Combustível'], fuelForm: ['Combustível', 'Novo abastecimento'], chargeForm: ['Combustível', 'Nova recarga'], editDate: ['Registro', 'Corrigir data'],
   costs: ['Configurações', 'Custos operacionais'], costFix: ['Custos operacionais', 'Custos fixos'], costVar: ['Custos operacionais', 'Custos variáveis'], costKm: ['Custos operacionais', 'Custo por quilômetro'],
@@ -28,13 +28,15 @@ var TITLES = {
   hist: ['Histórico', 'Evolutivos'], fin: ['', 'Financeiro'], cfg: ['', 'Configurações'], op: ['', 'Operação'], home: ['', 'Operação']
 };
 
-/* ---------- corridas: registros (R5) ----------
-   oferta    = oferta analisada (captura); nunca é receita e não exige classificação do motorista
-   concluida = corrida efetivamente realizada, registrada pelo motorista (valor recebido + km; duração opcional)
-   taxa      = taxa de cancelamento recebida (receita de taxas, não conta como corrida)
-   excluida  = registro excluído pelo motorista (mantido para a trilha; fora dos cálculos) */
-var RIDE_ST = { oferta: ['Oferta analisada', '#C9C4EC'], concluida: ['Registrada', '#3FE0A0'], taxa: ['Taxa de cancelamento', '#F6C445'], excluida: ['Excluída', '#FF6B7D'] };
-var OLD_ST = { pendente: 'oferta', realizada: 'concluida', ignorada: 'oferta', aceita: 'oferta', recusada: 'oferta' };
+/* ---------- corridas: registros (validação manual, 08/11/2026 — decisão D-27) ----------
+   O app NÃO detecta aceite. Toda oferta do expediente fica registrada e é conferida pelo motorista no STOP:
+   oferta     = a conferir (nunca é receita)
+   concluida  = realizada (receita, corrida, km produtivo e tempo útil)
+   cancelada  = cancelada (fora da receita e do km/tempo de corridas; taxa opcional entra como receita de taxas)
+   nao_aceita = não aceita (não marcada na conferência; fora de tudo; mantida no histórico)
+   taxa / excluida = registros manuais da rodada 5 (mantidos por compatibilidade) */
+var RIDE_ST = { oferta: ['A conferir', '#C9C4EC'], concluida: ['Realizada', '#3FE0A0'], cancelada: ['Cancelada', '#FF6B7D'], nao_aceita: ['Não aceita', '#8D79D9'], taxa: ['Taxa de cancelamento', '#F6C445'], excluida: ['Excluída', '#FF6B7D'] };
+var OLD_ST = { pendente: 'oferta', realizada: 'concluida', ignorada: 'nao_aceita', aceita: 'oferta', recusada: 'nao_aceita' };
 /* cores do veículo (ilustração) */
 var VEH_COLORS = [['branco', 'Branco', '#ECEBF2'], ['prata', 'Prata', '#BFC3CC'], ['cinza', 'Cinza', '#7C8190'], ['preto', 'Preto', '#2B2A33'], ['vermelho', 'Vermelho', '#C8414B'], ['azul', 'Azul', '#3F6BC9'], ['bege', 'Bege/Marrom', '#A8876A'], ['verde', 'Verde', '#4E8F6B'], ['outra', 'Outra', '#9B97B8']];
 function vehColor(k) { return VEH_COLORS.filter(function (c) { return c[0] === k; })[0] || null; }
@@ -50,7 +52,7 @@ var ISO_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
 function storeGet() { try { var ls = (typeof localStorage !== 'undefined') ? localStorage : null; if (!ls) return null; var raw = ls.getItem(STORE_KEY); if (!raw) return null; return JSON.parse(raw, function (k, v) { return typeof v === 'string' && ISO_RE.test(v) ? new Date(v) : v; }); } catch (e) { return null; } }
 function storeSet(obj) { try { if (typeof localStorage === 'undefined') return false; localStorage.setItem(STORE_KEY, JSON.stringify(obj)); return true; } catch (e) { return false; } }
 function storeClear() { try { if (typeof localStorage !== 'undefined') localStorage.removeItem(STORE_KEY); } catch (e) { } }
-function migrateRide(r, i) { if (!r) return r; var st = r.st === 'cancelada' ? (r.fee > 0 ? 'taxa' : 'oferta') : (OLD_ST[r.st] || r.st); var x = Object.assign({}, r, { st: st }); if (x.id === undefined) x.id = i + 1; if (!x.trail) x.trail = []; return x; }
+function migrateRide(r, i) { if (!r) return r; var st = OLD_ST[r.st] || r.st; var x = Object.assign({}, r, { st: st }); if (x.id === undefined) x.id = i + 1; if (!x.trail) x.trail = []; return x; }
 
 class Component extends DCLogic {
   constructor(props) {
@@ -135,17 +137,26 @@ class Component extends DCLogic {
   offerOf(r) { if (r.src === 'offer') return OFFERS[r.i]; if (r.src === 'demo') return DEMO_RIDES[r.i]; if (r.of !== null && r.of !== undefined) { var o = this.rideById(r.of); return o ? OFFERS[o.i] : null; } return null; }
   /* Base REALIZADA: somente corridas registradas (valor recebido + km) + taxas de cancelamento. */
   base(rides) {
-    var rec = 0, k = 0, fees = 0, n = 0, canc = 0, min = 0;
+    var rec = 0, k = 0, fees = 0, n = 0, canc = 0, min = 0, nMin = 0, recMin = 0;
     (rides || this.state.rides).forEach(function (r) {
-      if (r.st === 'taxa') { canc++; if (r.fee > 0) fees += r.fee; return; }
+      if (r.st === 'taxa' || r.st === 'cancelada') { canc++; if (r.fee > 0) fees += r.fee; return; }
       if (r.st !== 'concluida' || !(r.recv > 0) || !(r.km > 0)) return;
-      rec += r.recv; k += r.km; min += r.min || 0; n++;
+      rec += r.recv; k += r.km; n++;
+      if (r.min > 0) { min += r.min; nMin++; recMin += r.recv; }
     });
-    return { rec: rec, km: k, fees: fees, n: n, canc: canc, min: min };
+    return { rec: rec, km: k, fees: fees, n: n, canc: canc, min: min, nMin: nMin, recMin: recMin, minMissing: n - nMin };
   }
-  shiftMin() { var s = this.state; if (!s.shift) return 0; var el = Math.max(0, (CLOCK.now() - s.shift.startedAt) / 60000); return Math.max(Math.round(el + s.clock), this.base().min); }
+  /* Tempo total do expediente = início → agora (ou STOP), pelo relógio do aparelho. Sem tempo simulado. */
+  shiftMin() { var s = this.state; if (!s.shift) return 0; return Math.max(0, Math.floor((CLOCK.now() - s.shift.startedAt) / 60000)); }
+  /* Tempo útil = soma das durações das corridas realizadas; não útil = total − útil. Parcial se faltar duração. */
+  timeStats(b, total) {
+    var util = b.min, partial = b.minMissing > 0, incons = util > total;
+    return { total: total, util: util, naoUtil: incons ? null : total - util, partial: partial, incons: incons,
+      pctUtil: total > 0 && !incons ? util / total : null, recHourTotal: total > 0 ? (b.rec + b.fees) / (total / 60) : null,
+      recHourUtil: util > 0 ? b.recMin / (util / 60) : null, missing: b.minMissing, canc: b.canc };
+  }
   /* Registro do expediente EM ANDAMENTO: entra na mesma camada de cálculo (km total ainda desconhecido). */
-  liveRec() { var s = this.state; if (!s.shift) return null; var b = this.base(); return { d: s.shift.startedAt, start: s.shift.start, end: null, kmExp: null, kmProd: b.km, rec: b.rec, fees: b.fees, rides: b.n, min: this.shiftMin(), today: true, live: true }; }
+  liveRec() { var s = this.state; if (!s.shift) return null; var b = this.base(); return { d: s.shift.startedAt, start: s.shift.start, end: null, kmExp: null, kmProd: b.km, rec: b.rec, fees: b.fees, rides: b.n, min: this.shiftMin(), minUtil: b.min, minUtilMissing: b.minMissing, today: true, live: true }; }
   /* Fonte única de dados para todos os módulos. */
   data() { var s = this.state, lr = this.liveRec(); return lr ? Object.assign({}, s, { days: s.days.concat([lr]) }) : s; }
   /* Se o expediente já foi fechado, reconsolida o registro do dia a partir dos registros (sem duplicar). */
@@ -163,9 +174,21 @@ class Component extends DCLogic {
     return this.consolidate(rides, 'registro #' + id);
   }
   rideActions(r) {
-    var self = this, s = this.state, A = [];
-    if (r.st === 'oferta') A.push(['Registrar como corrida', function () { self.newRide(r); }, '#3FE0A0']);
-    else if (r.st === 'concluida' || r.st === 'taxa') {
+    var self = this, s = this.state, A = [], t = CLOCK.now(), o = this.offerOf(r);
+    var label = function (x) { return RIDE_ST[x.st] ? RIDE_ST[x.st][0] : x.st; };
+    var mark = function (st, extra) { return function () {
+      var patch = Object.assign({ st: st }, extra || {});
+      if (st === 'concluida') { patch.recv = r.recv > 0 ? r.recv : (o ? o.v : null); patch.km = r.km > 0 ? r.km : (o ? o.pk + o.tk : null); patch.min = r.min > 0 ? r.min : (o ? o.pm + o.tm : null); patch.doneAt = r.doneAt || t; }
+      self.setState(self.ridePatch(r.id, patch, { acao: 'conferência', de: label(r), para: RIDE_ST[st][0] }));
+    }; };
+    var isOfferLike = r.src === 'offer' || r.src === 'demo';
+    if (isOfferLike) {
+      if (r.st !== 'concluida') A.push(['Realizada', mark('concluida'), '#3FE0A0']);
+      if (r.st !== 'cancelada') A.push(['Cancelada', mark('cancelada'), '#FF6B7D']);
+      if (r.st === 'concluida') A.push(['Corrigir valores', function () { self.openRideForm(r); }, '#B58AF5']);
+      if (r.st === 'cancelada') A.push([r.fee > 0 ? 'Corrigir taxa' : 'Informar taxa', function () { self.openRideForm(r); }, '#F6C445']);
+      if (r.st === 'concluida' || r.st === 'cancelada') A.push(['Não aceita', mark('nao_aceita'), '#8D79D9']);
+    } else if (r.st === 'concluida' || r.st === 'taxa') {
       if (s.delSel === r.id) { A.push(['Confirmar exclusão', function () { var p = self.ridePatch(r.id, { st: 'excluida' }, { acao: 'registro excluído', de: r.st === 'taxa' ? 'Taxa ' + money(r.fee) : money(r.recv), para: 'fora dos cálculos' }); p.delSel = null; self.setState(p); }, '#FF6B7D']); A.push(['Manter', function () { self.setState({ delSel: null }); }, '#8D79D9']); }
       else { A.push(['Corrigir valores', function () { self.openRideForm(r); }, '#B58AF5']); A.push(['Excluir', function () { self.setState({ delSel: r.id }); }, '#FF6B7D']); }
     }
@@ -177,7 +200,7 @@ class Component extends DCLogic {
     this.nav('rideForm', { delSel: null, rf: { id: null, kind: 'corrida', of: offer ? offer.id : null, recv: o ? fmtNum(o.v, 2) : '', km: o ? fmtNum(o.pk + o.tk, 1) : '', min: o ? String(o.pm + o.tm) : '', fee: '', suggested: !!o, err: '' } });
   }
   openRideForm(r) {
-    this.nav('rideForm', { rideSel: r.id, delSel: null, rf: { id: r.id, kind: r.st === 'taxa' ? 'taxa' : 'corrida', of: r.of === undefined ? null : r.of,
+    this.nav('rideForm', { rideSel: r.id, delSel: null, rf: { id: r.id, kind: (r.st === 'taxa' || r.st === 'cancelada') ? 'taxa' : 'corrida', isCanc: r.st === 'cancelada', of: r.of === undefined ? null : r.of,
       recv: r.recv > 0 ? fmtNum(r.recv, 2) : '', km: r.km > 0 ? fmtNum(r.km, 1) : '', min: r.min > 0 ? String(r.min) : '', fee: r.fee > 0 ? fmtNum(r.fee, 2) : '', suggested: false, err: '' } });
   }
   analyze(i) {
@@ -252,14 +275,17 @@ class Component extends DCLogic {
     /* ---------- operação ---------- */
     var avg = avgOf(fin), dRef = fin.n > 0 ? fin.km / fin.n : null;
     var req = dRef === null ? s.meta : requiredPerKm(fin, s.meta, dRef), below = avg === null || avg < s.meta, bst = barState(avg, s.meta);
-    var hours = this.shiftMin() / 60;
+    var hours = this.shiftMin() / 60, TS = this.timeStats(fin, this.shiftMin());
     var opTiles = [
       tile('Por km', avg === null ? '—' : money(avg), '#F6C445', ICON.road),
-      tile('Por hora', hours > 0 && fin.n > 0 ? money((fin.rec + fin.fees) / hours) : '—', '#B58AF5', ICON.clock),
+      tile('Por hora (expediente)', hours > 0 && fin.n > 0 ? money((fin.rec + fin.fees) / hours) : '—', '#B58AF5', ICON.clock),
       tile('Por corrida', fin.n > 0 ? money(fin.rec / fin.n) : '—', '#4FB3FF', ICON.people),
       tile('Receita total', money(fin.rec + fin.fees), '#3FE0A0', ICON.coins)
     ];
-    var regs = s.rides.filter(function (r) { return r.st === 'concluida' || r.st === 'taxa'; });
+    /* itens do expediente atual (ou do último fechado): ofertas a conferir e registros; sem excluídos */
+    var regs = s.rides.filter(function (r) { return r.st !== 'excluida'; });
+    var nConf = s.rides.filter(function (r) { return r.st === 'oferta'; }).length;
+    var nCancel = s.rides.filter(function (r) { return r.st === 'cancelada'; }).length;
     var offersAll = s.rides.filter(function (r) { return r.st === 'oferta' && r.src === 'offer'; });
 
     /* ---------- card da oferta ---------- */
@@ -305,12 +331,14 @@ class Component extends DCLogic {
       var o3 = self.offerOf(r), L = RIDE_ST[r.st] || RIDE_ST.concluida;
       var title = r.src === 'demo' ? 'Corrida de exemplo ' + (r.i + 1) : (r.st === 'taxa' ? 'Taxa de cancelamento' : (o3 ? o3.p + ' · ' + PLACES[o3.o].n + ' → ' + (o3.d ? PLACES[o3.d].n : 'destino não lido') : 'Corrida registrada'));
       var v, det;
-      if (r.st === 'concluida') { v = money(r.recv); det = dec(r.km, 1) + ' km' + (r.min > 0 ? ' · ' + r.min + ' min' : '') + ' · ' + money(r.recv / r.km) + '/km'; }
+      if (r.st === 'concluida') { v = money(r.recv); det = dec(r.km, 1) + ' km' + (r.min > 0 ? ' · ' + r.min + ' min' : ' · sem duração') + ' · ' + money(r.recv / r.km) + '/km'; }
       else if (r.st === 'taxa') { v = money(r.fee); det = 'Receita de taxa · não conta como corrida'; }
-      else { v = '—'; det = 'Oferta analisada'; }
-      return { k: r.id, t: title, v: v, s: det + ' · ' + hm(r.doneAt || r.at), sl: L[0], st: chipStyle(L[1]), isDemo: !!r.demo, open: function () { self.nav('ride', { rideSel: r.id, delSel: null }); }, acts: self.rideActions(r) };
+      else if (r.st === 'cancelada') { v = r.fee > 0 ? money(r.fee) : '—'; det = (r.fee > 0 ? 'Taxa de cancelamento' : 'Sem taxa') + ' · fora da receita de corridas'; }
+      else if (r.st === 'nao_aceita') { v = '—'; det = 'Oferta de ' + (o3 ? money(o3.v) : '—') + ' · fora dos cálculos'; }
+      else { v = o3 ? money(o3.v) : '—'; det = 'Oferta · ' + (o3 ? dec(o3.pk + o3.tk, 1) + ' km · ' + (o3.pm + o3.tm) + ' min' : '') + ' · a conferir'; }
+      return { k: r.id, t: title, v: v, s: det + ' · ' + hm(r.at), sl: L[0], st: chipStyle(L[1]), isDemo: !!r.demo, open: function () { self.nav('ride', { rideSel: r.id, delSel: null }); }, acts: self.rideActions(r) };
     };
-    var closeItems = regs.map(rideView);
+    var closeItems = regs.map(rideView), conferred = regs.length - nConf;
     var rideRows = regs.slice().reverse().map(rideView);
     /* detalhe e formulário do registro */
     var RS = s.rideSel !== null ? this.rideById(s.rideSel) : null, RSo = RS ? this.offerOf(RS) : null;
@@ -318,15 +346,15 @@ class Component extends DCLogic {
     if (RS) {
       var Lr = RIDE_ST[RS.st] || RIDE_ST.concluida, isT = RS.st === 'taxa';
       rd = { ok: true, title: rideView(RS).t, sl: Lr[0], st: chipStyle(Lr[1]), isDemo: !!RS.demo, acts: this.rideActions(RS),
-        rows: (isT ? [['Registrada em', dmyhm(RS.doneAt || RS.at)], ['Taxa recebida', money(RS.fee)]] : [
-          ['Registrada em', dmyhm(RS.doneAt || RS.at)],
+        rows: (isT || RS.st === 'cancelada' ? [['Recebida em', dmyhm(RS.at)], ['Taxa de cancelamento', RS.fee > 0 ? money(RS.fee) : 'sem taxa']] : RS.st !== 'concluida' ? [['Recebida em', dmyhm(RS.at)]] : [
+          ['Recebida em', dmyhm(RS.at)],
           ['Valor recebido', RS.recv > 0 ? money(RS.recv) : '—'],
           ['Km da corrida', RS.km > 0 ? dec(RS.km, 1) + ' km' : '—'],
           ['Duração', RS.min > 0 ? RS.min + ' min' : 'não informada'],
           ['Receita por km', RS.km > 0 ? money(RS.recv / RS.km) : '—'],
           ['Receita por hora', RS.min > 0 ? money(RS.recv / (RS.min / 60)) : '—']
         ]).concat(RSo && RS.src !== 'demo' ? [['Oferta associada', money(RSo.v) + ' · ' + dec(RSo.pk + RSo.tk, 1) + ' km']] : []).map(function (x) { return { k: x[0], v: x[1] }; }),
-        note: RS.st === 'excluida' ? 'Registro excluído: fora dos cálculos (mantido na trilha).' : (isT ? 'Entra uma única vez como receita de taxas; não conta como corrida.' : (RS.st === 'oferta' ? 'Oferta analisada: não é receita.' : 'Conta na receita e nas médias desde o registro.')),
+        note: { excluida: 'Registro excluído: fora dos cálculos (mantido na trilha).', taxa: 'Entra uma única vez como receita de taxas; não conta como corrida.', oferta: 'A conferir: marque Realizada ou Cancelada. Se ficar sem marcação, vira "Não aceita" no fechamento.', cancelada: 'Fora da receita, das corridas, do km produtivo e do tempo útil. Mantida para análise de cancelamentos.', nao_aceita: 'Não entra em nenhum cálculo. Mantida no histórico de ofertas.' }[RS.st] || 'Realizada: entra na receita, nas corridas, no km produtivo e no tempo útil.',
         trail: (RS.trail || []).slice().reverse().map(function (e) { return { t: dmyhm(e.em), s: e.acao + (e.de !== undefined && e.de !== null ? ': ' + e.de + ' → ' + e.para : '') }; }) };
       rd.hasTrail = rd.trail.length > 0;
     }
@@ -372,7 +400,7 @@ class Component extends DCLogic {
     var fKmBase = fKm === null ? (dayA ? dayA.kmProd : 0) : fKm;
     var finInd = [
       tile(fKm === null ? 'Por km prod.' : 'Por km', fKmBase > 0 ? money(fRec / fKmBase) : '—', '#F6C445', ICON.coins, true),
-      tile('Por hora', fMin > 0 && fRides > 0 ? money(fRec / (fMin / 60)) : '—', '#B58AF5', ICON.clock, true),
+      tile('Por hora exped.', fMin > 0 && fRides > 0 ? money(fRec / (fMin / 60)) : '—', '#B58AF5', ICON.clock, true),
       tile('Por corrida', fRides > 0 ? money((dayA.rec) / fRides) : '—', '#4FB3FF', ICON.people, true)
     ];
     var finSide = [
@@ -380,6 +408,37 @@ class Component extends DCLogic {
       { path: ICON.route, v: dec(fKmBase, 1), u: fKm === null ? 'km prod.' : 'km' },
       { path: ICON.clock, v: dur(fMin), u: '' }
     ];
+    /* tempo do dia (expediente aberto ou último fechado) */
+    var FT = (function () {
+      if (s.shift) return self.timeStats(fin, self.shiftMin());
+      var tr = todayRecs.length ? todayRecs[todayRecs.length - 1] : null;
+      if (!tr) return self.timeStats({ min: 0, minMissing: 0, rec: 0, fees: 0, recMin: 0, canc: 0 }, 0);
+      var bb = tr.rideList ? self.base(tr.rideList) : { min: tr.minUtil || 0, minMissing: tr.minUtilMissing || 0, rec: tr.rec, fees: tr.fees, recMin: tr.rec, canc: 0 };
+      return self.timeStats(bb, tr.min || 0);
+    })();
+    /* memória de cálculo dos custos do dia (mesma camada: dayA) */
+    var cdView = { ok: !!dayA, comps: [], fixos: [], fuels: [], fuelsNone: true, fuelsTotal: '', formula: '', demoFix: false };
+    if (dayA) {
+      var dim = daysInMonth(TODAY), m0 = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
+      var kmBase = dayA.live ? dayA.kmEst : dayA.kmExp, kmLbl = dayA.live ? 'km produtivos das corridas realizadas (km total só no fechamento)' : 'km do expediente pelo hodômetro';
+      var cycAll = fuelCycles(s.fuels), lastC = cycAll.filter(function (c) { return startOfDay(c.d) <= TODAY; }).slice(-1)[0];
+      var cpkDesc = { medido: 'ciclo(s) cheio → cheio encerrado(s) hoje', ultimo: lastC ? 'último ciclo medido (' + ddmm(lastC.d) + '): ' + money(lastC.cost) + ' ÷ ' + km(lastC.dist) : 'último ciclo medido', referencia: 'preço do último abastecimento ÷ consumo de referência do veículo', 'sem dados': 'sem abastecimento registrado' }[dayA.cpkSource] || dayA.cpkSource;
+      var fxList = s.fixos.filter(function (f) { return !f.from || f.from <= m0; });
+      cdView.demoFix = fxList.some(function (f) { return f.demo; });
+      cdView.comps = [
+        { n: 'Combustível', kind: 'Estimado', v: money(dayA.fuelCost), base: (dayA.cpkFuel === null ? '—' : 'R$ ' + fmtNum(dayA.cpkFuel, 4) + '/km') + ' × ' + dec(kmBase, 1) + ' km', note: 'Custo/km: ' + cpkDesc + '. Quilometragem: ' + kmLbl + '.' },
+        { n: 'Custos fixos rateados', kind: 'Estimado', v: money(dayA.fixos), base: money(fxList.reduce(function (t, f) { return t + f.v; }, 0)) + '/mês ÷ ' + dim + ' dias', note: 'Rateio diário pelos dias reais do mês (regra aprovada D-19).' + (cdView.demoFix ? ' Valores de EXEMPLO.' : '') },
+        { n: 'Despesas operacionais', kind: 'Registrado', v: money(dayA.vexp), base: s.vexp.filter(function (e) { return inRange(e.d, TODAY, TODAY); }).length + ' lançamento(s) hoje', note: 'Lançadas em Custos variáveis.' },
+        { n: 'Manutenção', kind: 'Registrado', v: money(dayA.maint), base: s.mrecs.filter(function (m) { return inRange(m.d, TODAY, TODAY); }).length + ' serviço(s) hoje', note: 'Serviços registrados em Manutenção.' }
+      ].map(function (c) { c.kc = c.kind === 'Estimado' ? chipStyle('#F6C445') : chipStyle('#4FB3FF'); return c; });
+      cdView.fixos = fxList.map(function (f) { return { n: f.n + (f.demo ? ' · exemplo' : ''), v: money(f.v / dim) + '/dia', s: money(f.v) + '/mês' }; });
+      var fToday = s.fuels.filter(function (f) { return inRange(f.d, TODAY, TODAY); });
+      cdView.fuels = fToday.map(function (f) { return { n: hm(f.d) + ' · ' + dec(f.l, 1) + ' L × ' + money(f.p), v: money(f.l * f.p) }; });
+      cdView.fuelsNone = fToday.length === 0; cdView.fuelsTotal = money(fToday.reduce(function (t, f) { return t + f.l * f.p; }, 0));
+      cdView.formula = money(dayA.receita) + ' − ' + money(dayA.fuelCost) + ' − ' + money(dayA.fixos) + ' − ' + money(dayA.vexp + dayA.maint) + ' = ' + money(dayA.resultado);
+      cdView.total = money(dayA.custos); cdView.receita = money(dayA.receita); cdView.result = money(dayA.resultado); cdView.resColor = dayA.resultado < 0 ? '#FF6B7D' : '#3FE0A0';
+      cdView.title = dayA.live ? 'Resultado parcial (estimado)' : 'Resultado operacional do dia';
+    }
     var row = function (k, v, kind, color) {
       var strong = kind === 'total', head = kind === 'head', sub = kind === 'sub';
       return {
@@ -628,24 +687,26 @@ class Component extends DCLogic {
         if (s.odoMode === 'start') {
           self._restore = 0; self.setState({ shift: { start: odoVal, startedAt: t, ts: stamp(t) }, screen: 'op', tab: 'op', stack: [], dayDone: false, endOdo: null, clock: 0, rides: [], nextRideId: 1, offerIdx: 0, cur: null, demoLoaded: false });
         } else {
-          var b = self.base(), ts = Object.assign(stamp(s.shift.startedAt), { endedAt: t });
-          ts.review = { em: t, corridas: b.n, taxas: b.canc, ofertasAnalisadas: s.rides.filter(function (r) { return r.st === 'oferta'; }).length };
-          var rec = { d: s.shift.startedAt, start: s.shift.start, end: odoVal, kmExp: odoVal - s.shift.start, kmProd: b.km, rec: b.rec, fees: b.fees, rides: b.n, min: self.shiftMin(), today: true, ts: ts, rideList: s.rides };
-          self._restore = 0; self.setState({ endOdo: odoVal, shift: null, dayDone: true, dayClosedAt: t, days: s.days.concat([rec]), screen: 'closed', tab: 'fin', finTab: 'fin', stack: [{ screen: 'fin', tab: 'fin', finTab: 'fin', hSeg: s.hSeg, mTab: s.mTab, evoKey: s.evoKey, evoPer: s.evoPer, cat: null, scroll: 0 }] });
+          /* ofertas não marcadas na conferência viram "não aceita" (com trilha); o fechamento usa exatamente estes registros */
+          var finalRides = s.rides.map(function (r) { if (r.st !== 'oferta') return r; return Object.assign({}, r, { st: 'nao_aceita', trail: (r.trail || []).concat([{ acao: 'conferência', de: 'A conferir', para: 'Não aceita (não marcada)', em: t }]) }); });
+          var b = self.base(finalRides), ts = Object.assign(stamp(s.shift.startedAt), { endedAt: t }), tot = self.shiftMin();
+          ts.review = { em: t, realizadas: b.n, canceladas: finalRides.filter(function (r) { return r.st === 'cancelada'; }).length, naoAceitas: finalRides.filter(function (r) { return r.st === 'nao_aceita'; }).length };
+          var rec = { d: s.shift.startedAt, start: s.shift.start, end: odoVal, kmExp: odoVal - s.shift.start, kmProd: b.km, rec: b.rec, fees: b.fees, rides: b.n, min: tot, minUtil: b.min, minUtilMissing: b.minMissing, today: true, ts: ts, rideList: finalRides };
+          self._restore = 0; self.setState({ rides: finalRides, endOdo: odoVal, shift: null, dayDone: true, dayClosedAt: t, days: s.days.concat([rec]), screen: 'closed', tab: 'fin', finTab: 'fin', stack: [{ screen: 'fin', tab: 'fin', finTab: 'fin', hSeg: s.hSeg, mTab: s.mTab, evoKey: s.evoKey, evoPer: s.evoPer, cat: null, scroll: 0 }] });
         }
       },
       /* operação */
-      shiftTimeText: s.shift ? 'Iniciado às ' + hm(s.shift.startedAt) + ' • ' + Math.floor(s.clock / 60) + 'h' + pad(Math.round(s.clock % 60)) : '',
+      shiftTimeText: s.shift ? 'Iniciado às ' + hm(s.shift.startedAt) + ' • ' + Math.floor(this.shiftMin() / 60) + 'h' + pad(this.shiftMin() % 60) : '',
       reqText: '≥ ' + money(Math.max(0, req)) + '/km', reqColor: below ? '#F6C445' : (bst === 'destaque' ? '#A9B6FF' : '#3FE0A0'),
       barStyle: this.barCss(avg), opTiles: opTiles, metaText: money(s.meta),
-      opNote: fin.n === 0 ? 'Nenhuma corrida registrada ainda' : fin.n + (fin.n === 1 ? ' corrida registrada' : ' corridas registradas'),
+      opNote: (nConf ? nConf + (nConf === 1 ? ' oferta para conferir no STOP' : ' ofertas para conferir no STOP') : 'Nenhuma oferta a conferir') + (fin.n ? ' · ' + fin.n + (fin.n === 1 ? ' realizada' : ' realizadas') : ''),
       hasOpNote: true,
-      goNewRide: function () { self.newRide(null); },
+      goNewRide: function () { self.newRide(null); }, opConf: s.rides.filter(function (r) { return r.st === 'oferta'; }).length,
       opHint: 'Médias do expediente: referência para avaliar as próximas ofertas, não garantia de ganho.',
       noMoreOffers: s.offerIdx >= OFFERS.length,
       nextOfferLabel: s.offerIdx >= OFFERS.length ? 'Fim das ofertas simuladas' : 'Receber oferta ' + (s.offerIdx + 1) + ' de ' + OFFERS.length,
       nextOffer: function () { if (s.offerIdx >= OFFERS.length) return; self.setState({ cur: s.offerIdx, offerIdx: s.offerIdx + 1, screen: 'offer' }); },
-      demoLabel: s.demoLoaded ? 'Exemplo carregado' : 'Carregar 2 corridas registradas (exemplo)', demoDisabled: s.demoLoaded,
+      demoLabel: s.demoLoaded ? 'Exemplo carregado' : 'Carregar 2 corridas de EXEMPLO (não são reais)', demoDisabled: s.demoLoaded,
       loadDemo: function () { if (s.demoLoaded) return; var t = CLOCK.now(), n0 = s.nextRideId; self.setState({ demoLoaded: true, clock: s.clock + 40, nextRideId: n0 + DEMO_RIDES.length, rides: DEMO_RIDES.map(function (d, i) { return { id: n0 + i, src: 'demo', demo: true, i: i, st: 'concluida', recv: d.v, km: d.pk + d.tk, min: d.pm + d.tm, at: t, doneAt: t, ts: stamp(t), trail: [{ acao: 'exemplo carregado', em: t }] }; }).concat(s.rides) }); },
       goClose: nav('close'), of: of,
       closeOffer: function () { var a2 = self.analyze(s.cur), t = CLOCK.now(); self.setState({ rides: s.rides.concat([{ id: s.nextRideId, src: 'offer', i: s.cur, st: 'oferta', cls: a2.cls, sim: a2.sim, at: t, ts: stamp(t), fee: null, recv: null, km: null, min: null, trail: [{ acao: 'oferta analisada', em: t }] }]), nextRideId: s.nextRideId + 1, clock: s.clock + 20, screen: 'op', cur: null }); },
@@ -669,17 +730,20 @@ class Component extends DCLogic {
       evoNAText: '',
       evoList: recRows,
       /* conferência / fechamento */
-      closeItems: closeItems, closeEmpty: closeItems.length === 0, closePending: false, closePendingText: '',
+      closeItems: closeItems, closeEmpty: closeItems.length === 0, closePending: nConf > 0,
+      closePendingText: nConf + (nConf === 1 ? ' oferta ainda sem marcação' : ' ofertas ainda sem marcação') + '. Se você confirmar assim, ' + (nConf === 1 ? 'ela vira' : 'elas viram') + ' "Não aceita" e não entram na receita.',
+      closeIntro: 'Aqui estão todas as ofertas deste expediente. Marque as que você realizou e as que foram canceladas. Só as realizadas entram na receita.',
       closeRec: money(fin.rec + fin.fees), closeKm: dec(fin.km, 1) + ' km', closeN: fin.n + (fin.n === 1 ? ' corrida registrada' : ' corridas registradas') + (fin.canc ? ' · ' + fin.canc + (fin.canc === 1 ? ' taxa de cancelamento' : ' taxas de cancelamento') : ''),
-      closeOffers: offersAll.length + (offersAll.length === 1 ? ' oferta analisada' : ' ofertas analisadas') + ' no expediente (não entram na receita).',
+      closeOffers: '',
       closeBtn: 'Confirmar conferência e registrar hodômetro final',
-      closeRows: [['Ganhos', money(fin.rec + fin.fees)], ['Corridas', String(fin.n)], ['Taxas de cancelamento', money(fin.fees)], ['Km das corridas', dec(fin.km, 1) + ' km'], ['Tempo de operação', dur(this.shiftMin())]].map(function (x) { return { k: x[0], v: x[1] }; }),
+      closeRows: [['Realizadas', String(fin.n)], ['Canceladas', String(nCancel)], ['A conferir', String(nConf)], ['Ganhos (realizadas + taxas)', money(fin.rec + fin.fees)], ['Km das corridas realizadas', dec(fin.km, 1) + ' km'],
+        ['Tempo total do expediente', dur(TS.total)], ['Operação útil' + (TS.partial ? ' (parcial)' : ''), dur(TS.util)], ['Operação não útil', TS.naoUtil === null ? '—' : dur(TS.naoUtil)]].map(function (x) { return { k: x[0], v: x[1] }; }),
       goCameraFinal: function () { self.nav('camera', { odoMode: 'final' }); },
       /* corrida: detalhe e formulário */
       rd: rd, isRide: sc === 'ride', isRideForm: sc === 'rideForm',
       rfConc: rf.kind === 'corrida', rfCanc: rf.kind === 'taxa', rfSuggested: !!rf.suggested && rf.kind === 'corrida', rfIsNew: !rf.id,
       rfRecv: rf.recv, rfKm: rf.km, rfMin: rf.min, rfFee: rf.fee, rfErr: rf.err || '', rfHasErr: !!rf.err,
-      rfTitle: rf.id ? 'Corrigir registro' : 'Registrar corrida',
+      rfTitle: rf.isCanc ? 'Taxa de cancelamento' : (rf.id ? 'Corrigir valores da corrida' : 'Registrar corrida'), rfShowKinds: !rf.id,
       rfKinds: [['corrida', 'Corrida realizada'], ['taxa', 'Taxa de cancelamento']].map(function (x) { return { n: x[1], style: pillStyle(rf.kind === x[0], '#B58AF5'), pick: function () { setRf({ kind: x[0] }); } }; }),
       rfOffers: rfOffers, rfHasOffers: rfOffers.length > 0,
       onRfRecv: function (e) { setRf({ recv: e.target.value }); }, onRfKm: function (e) { setRf({ km: e.target.value }); }, onRfMin: function (e) { setRf({ min: e.target.value }); }, onRfFee: function (e) { setRf({ fee: e.target.value }); },
@@ -687,8 +751,8 @@ class Component extends DCLogic {
         var f = self.state.rf, t = CLOCK.now(), r = f.id ? self.rideById(f.id) : null; if (f.id && !r) return;
         var err = function (m) { self.setState({ rf: Object.assign({}, f, { err: m }) }); }, patch, label;
         if (f.kind === 'taxa') {
-          var fee = parseDec(f.fee); if (isNaN(fee) || fee <= 0) return err('Informe o valor da taxa de cancelamento.');
-          patch = { st: 'taxa', fee: fee, recv: null, km: null, min: null }; label = 'Taxa ' + money(fee);
+          var fee = f.fee === '' && f.isCanc ? 0 : parseDec(f.fee); if (isNaN(fee) || fee < 0 || (!f.isCanc && fee === 0)) return err('Informe o valor da taxa de cancelamento.');
+          patch = { st: f.isCanc ? 'cancelada' : 'taxa', fee: fee || null, recv: null, km: null, min: null }; label = fee > 0 ? 'Taxa ' + money(fee) : 'Sem taxa';
         } else {
           var v = parseDec(f.recv), k = parseDec(f.km), m = f.min === '' ? 0 : parseInt0(f.min);
           if (isNaN(v) || v <= 0) return err('Informe o valor recebido.');
@@ -697,7 +761,7 @@ class Component extends DCLogic {
           patch = { st: 'concluida', recv: v, km: k, min: m || null, fee: null }; label = money(v) + ' · ' + dec(k, 1) + ' km' + (m ? ' · ' + m + ' min' : '');
         }
         if (r) {
-          var was = r.st === 'taxa' ? 'Taxa ' + money(r.fee) : money(r.recv) + ' · ' + dec(r.km, 1) + ' km' + (r.min ? ' · ' + r.min + ' min' : '');
+          var was = (r.st === 'taxa' || r.st === 'cancelada') ? (r.fee > 0 ? 'Taxa ' + money(r.fee) : 'Sem taxa') : money(r.recv) + ' · ' + dec(r.km, 1) + ' km' + (r.min ? ' · ' + r.min + ' min' : '');
           var p1 = self.ridePatch(r.id, patch, { acao: 'valores corrigidos', de: was, para: label }); p1.rf = null; return self.done(p1);
         }
         var rec = Object.assign({ id: self.state.nextRideId, src: 'reg', of: f.of === undefined ? null : f.of, at: t, doneAt: t, ts: stamp(t), trail: [{ acao: f.kind === 'taxa' ? 'taxa registrada' : 'corrida registrada', para: label, em: t }] }, patch);
@@ -718,21 +782,29 @@ class Component extends DCLogic {
       ftFin: s.finTab === 'fin', ftCost: s.finTab === 'cost', ftRes: s.finTab === 'res', ftMeta: s.finTab === 'meta',
       finNone: !finHas, finHas: finHas, finResLabel: s.shift ? 'Ganhos até agora' : 'Ganhos do dia', finCanOpen: !!dayA,
       finLive: !!s.shift, finDone: !s.shift && !!dayA && s.dayDone,
-      finLiveText: 'Os valores se atualizam a cada corrida registrada. O fechamento definitivo acontece quando você encerrar o expediente e conferir os dados.',
+      finLiveText: 'Os valores contam só as corridas marcadas como realizadas. A conferência das ofertas e o fechamento definitivo acontecem quando você encerrar o expediente (STOP).',
       finDoneText: 'Expediente fechado e conferido' + (s.dayClosedAt ? ' às ' + hm(s.dayClosedAt) : '') + '. Valores consolidados no histórico.',
-      finKmNote: s.shift ? 'Km das corridas registradas. O km total do dia vem do hodômetro no fechamento.' : '',
+      finKmNote: s.shift ? (nConf ? nConf + (nConf === 1 ? ' oferta aguarda' : ' ofertas aguardam') + ' conferência. ' : '') + 'Km das corridas realizadas; o km total do dia vem do hodômetro no fechamento.' : '',
       fr: dayA ? (function () {
-        var est = dayA.fuelCost + dayA.fixos, reg = dayA.vexp + dayA.maint;
+        var fx = dayA.fixos, fxDemo = s.fixos.some(function (x) { return x.demo; });
         return { rows: [
-            { k: 'Ganhos registrados', v: money(dayA.receita), c: '#F3F1FF' },
-            { k: '(−) Custos estimados' + (dayA.cpkFuel === null ? ' · sem custo de combustível' : ''), v: money(est), c: '#F3F1FF' },
-            { k: '(−) Custos registrados', v: money(reg), c: '#F3F1FF' }],
+            { k: 'Ganhos (corridas realizadas + taxas)', v: money(dayA.receita), c: '#F3F1FF' },
+            { k: '(−) Combustível · estimado', v: money(dayA.fuelCost), c: '#F3F1FF' },
+            { k: '(−) Custos fixos rateados · estimado' + (fxDemo ? ' (exemplo)' : ''), v: money(fx), c: '#F3F1FF' },
+            { k: '(−) Despesas e manutenção · registrado', v: money(dayA.vexp + dayA.maint), c: '#F3F1FF' }],
           title: dayA.live ? 'Resultado parcial (estimado)' : 'Resultado operacional do dia', v: money(dayA.resultado), c: dayA.resultado < 0 ? '#FF6B7D' : '#3FE0A0',
-          note: 'Estimados: combustível pelo custo/km e custos fixos rateados no dia. Registrados: despesas e manutenções lançadas.' + (dayA.cpkFuel === null ? ' Registre um abastecimento para estimar o combustível.' : '') };
+          note: (fxDemo ? 'Os custos fixos são dados de EXEMPLO; ajuste em Configurações → Custos ou remova o exemplo. ' : '') + (dayA.cpkFuel === null ? 'Registre um abastecimento para estimar o combustível.' : '') };
       })() : { rows: [], title: '', v: '', c: '#F3F1FF', note: '' },
+      goCostDay: nav('costDay'), isCostDay: sc === 'costDay', cd: cdView,
+      ft: { rows: [
+          ['Tempo total do expediente', dur(FT.total)], ['Operação útil' + (FT.partial ? ' (parcial)' : ''), dur(FT.util)], ['Operação não útil', FT.naoUtil === null ? '—' : dur(FT.naoUtil)],
+          ['Tempo produtivo', FT.pctUtil === null ? '—' : fmtNum(FT.pctUtil * 100, 0) + '% útil · ' + fmtNum((1 - FT.pctUtil) * 100, 0) + '% não útil'],
+          ['Ganho por hora de expediente', FT.recHourTotal === null ? '—' : money(FT.recHourTotal)], ['Ganho por hora útil', FT.recHourUtil === null ? '—' : money(FT.recHourUtil)]
+        ].map(function (x) { return { k: x[0], v: x[1] }; }),
+        note: 'Tempo total = início → ' + (s.shift ? 'agora' : 'STOP') + '. Útil = soma das durações das corridas realizadas. Não útil = total − útil (espera, deslocamento sem passageiro, cancelamentos).' + (FT.partial ? ' Parcial: ' + FT.missing + (FT.missing === 1 ? ' corrida realizada sem duração' : ' corridas realizadas sem duração') + ' (não estimada).' : '') + (FT.canc ? ' ' + FT.canc + (FT.canc === 1 ? ' cancelamento' : ' cancelamentos') + ': tempo perdido não medido.' : '') + (FT.incons ? ' Atenção: soma das corridas maior que o expediente; confira as durações.' : '') },
       finPartial: dayA ? (dayA.live ? 'Resultado parcial estimado: ' : 'Resultado do dia: ') + money(dayA.resultado) + (dayA.cpkFuel === null ? ' · sem custo de combustível (registre um abastecimento)' : '') : '', finPartialColor: dayA && dayA.resultado < 0 ? '#FF6B7D' : '#3FE0A0',
       finRecText: money(fRec), finInd: finInd, finSide: finSide, dreRows: dreRows, openDre: nav('dre'),
-      goRides: nav('rides'), rideRows: rideRows, ridesEmpty: rideRows.length === 0, ridesNote: 'Corridas e taxas registradas. Toque para ver detalhes, corrigir ou excluir.', goNewRideFin: function () { self.newRide(null); }, canAddRide: !!s.shift || s.dayDone,
+      goRides: nav('rides'), rideRows: rideRows, ridesEmpty: rideRows.length === 0, ridesNote: s.shift ? 'Ofertas e corridas deste expediente. A conferência é feita no STOP (Encerrar), mas você pode marcar antes se quiser.' : 'Corridas do último expediente. Toque para ver detalhes ou corrigir a classificação.', goNewRideFin: function () { }, canAddRide: false,
       costCards: [
         { t: 'Custos operacionais', s: 'Fixos, variáveis e por quilômetro', path: ICON.coins, c: '#F6C445', go: function () { self.nav('costs', { tab: 'fin' }); } },
         { t: motor && !motor.ice ? 'Energia' : 'Combustível', s: motor && !motor.ice ? 'Recargas: ' + ES.n : 'Consumo: ' + (cons ? dec(cons, 1) + ' km/L' : '—') + ' · ' + (cpk ? money(cpk) + '/km' : '—'), path: ICON.fuel, c: '#FF9F43', go: function () { self.nav('fuel', { tab: 'fin' }); } },
