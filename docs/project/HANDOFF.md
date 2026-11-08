@@ -15,7 +15,7 @@
 | Operação | Hodômetro como trava; recuperação de expediente; oferta simulada com card de impacto e classificação; **nenhuma marcação durante a operação**; médias com aviso de "referência, não garantia"; tempo do expediente pelo relógio real |
 | Conferência no STOP (D-27) | Todas as ofertas do expediente; Realizada (valores da oferta, corrigíveis) / Cancelada (taxa opcional); não marcadas → Não aceita; correção de classificação com trilha, inclusive após o fechamento; marcação antecipada opcional (I-05) |
 | Financeiro | Aviso de expediente em andamento; ganhos, km, médias; custos por componente (combustível e fixos estimados, despesas e manutenção registradas) e **memória de cálculo**; resultado parcial; **tempo total, útil e não útil** com R$/h de expediente × útil; DRE do dia; "Fechado e conferido"; Custos, Resultados e Metas |
-| Encerramento | Conferência (resumo, corrigir, excluir, incluir corrida esquecida) → hodômetro final → consolidação sem duplicidade |
+| Encerramento | Conferência de todas as ofertas (resumo com realizadas, canceladas, a conferir, ganhos, km e tempos; marcar e corrigir) → hodômetro final → consolidação sem duplicidade, usando exatamente os registros conferidos |
 | Histórico | Evolutivos (6 períodos, multissérie), Ofertas e Expedientes |
 | Veículo | Cartão clicável → detalhes com ilustração na cor; cor; hodômetro atual e no cadastro; edição a partir dos detalhes; 6 motorizações |
 | Combustível | Ciclos cheio → cheio; custo/km por ciclo; PMP; estoque estimado; Flex; híbrido sem recarga; elétrico medido × estimado |
@@ -91,7 +91,7 @@ Correções da validação manual: ver §9.
 
 ## 9. Correções da validação manual (08/11/2026)
 - **Branch e PRs:** `fix/validacao-manual-stop-custos-tempo` (commits `4b2e1f5` e `016dc4f` com o ajuste de rótulos) → **PR #1** para `develop` (merge `fa94143`) → **PR #2** para `main` (merge `2bc4773`).
-- **Publicação:** execução 42488706030, com testes, publicação e validação online concluídos. Versão `2bc4773` no ar.
+- **Publicação:** execução 42488706030 (`2bc4773`), com testes, publicação e validação online concluídos. As publicações seguintes foram só de documentação (PRs #3–#5) e também passaram na validação online (60/60).
 - **Testes no CI:** jornadas 177/177 · validação manual 60/60 · regressão 127/127 + 92/92 (219/219) · E2E local 59/59 · **E2E no endereço público 60/60**. As evidências (32 arquivos) estão na branch `evidencias`.
 - **Falha encontrada e corrigida durante o PR:** o rótulo "Por hora exped." cortava em 390 px no Chromium do CI (no Chrome local passava). Os rótulos agora podem quebrar linha, e o e2e passou a verificar rótulos e linhas.
 - **STOP:** a conferência agora lista todas as ofertas do expediente (D-27). Antes listava só os registros manuais, e o botão "Aceitar" do app simulado só fechava a oferta.
