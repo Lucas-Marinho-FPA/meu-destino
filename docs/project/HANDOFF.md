@@ -90,7 +90,10 @@ Correções da validação manual: ver §9.
 **Próxima sessão:** comece pelo repositório (`git clone`, `npm ci`, `npm test`). Toda alteração passa por `feature/*` → `develop` → `main`; ao entrar em `main`, a publicação e a validação online são automáticas. Confira o resultado na aba Actions e na branch `evidencias`.
 
 ## 9. Correções da validação manual (08/11/2026)
-- **Branch:** `fix/validacao-manual-stop-custos-tempo` → PR para `develop` → PR para `main`. Commits e execuções estão registrados no PR e em `docs/project/MIGRACAO.md`.
+- **Branch e PRs:** `fix/validacao-manual-stop-custos-tempo` (commits `4b2e1f5` e `016dc4f` com o ajuste de rótulos) → **PR #1** para `develop` (merge `fa94143`) → **PR #2** para `main` (merge `2bc4773`).
+- **Publicação:** execução 42488706030, com testes, publicação e validação online concluídos. Versão `2bc4773` no ar.
+- **Testes no CI:** jornadas 177/177 · validação manual 60/60 · regressão 127/127 + 92/92 (219/219) · E2E local 59/59 · **E2E no endereço público 60/60**. As evidências (32 arquivos) estão na branch `evidencias`.
+- **Falha encontrada e corrigida durante o PR:** o rótulo "Por hora exped." cortava em 390 px no Chromium do CI (no Chrome local passava). Os rótulos agora podem quebrar linha, e o e2e passou a verificar rótulos e linhas.
 - **STOP:** a conferência agora lista todas as ofertas do expediente (D-27). Antes listava só os registros manuais, e o botão "Aceitar" do app simulado só fechava a oferta.
 - **Custos:** combustível, fixos, despesas e manutenção aparecem separados, com memória de cálculo. Os R$ 60,20 da captura = R$ 7,53 de combustível (14,9 km × R$ 0,5053/km do ciclo de 04/11) + R$ 52,67 de fixos (R$ 1.580 ÷ 30, dados de **exemplo**).
 - **Tempo:** sem tempo simulado; total, útil e não útil (D-29).
