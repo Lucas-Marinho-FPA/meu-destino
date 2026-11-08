@@ -251,7 +251,7 @@
 </div>
 </div>
 <div class="grid3">
-<sc-for list="{{finInd}}" as="r" hint-placeholder-count="3"><div style="{{r.box}}"><span class="tic" style="{{r.ic}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{r.path}}"/></svg></span><div class="grow" style="display: flex; flex-direction: column; gap: 1px"><span style="font: 500 11px Inter, sans-serif; color: #E4DEFA; white-space: nowrap">{{r.k}}</span><span class="num" style="font-size: 14px; white-space: nowrap">{{r.v}}</span></div></div></sc-for>
+<sc-for list="{{finInd}}" as="r" hint-placeholder-count="3"><div style="{{r.box}}"><span class="tic" style="{{r.ic}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{r.path}}"/></svg></span><div class="grow" style="display: flex; flex-direction: column; gap: 1px; min-width: 0"><span style="font: 500 11px/1.2 Inter, sans-serif; color: #E4DEFA">{{r.k}}</span><span class="num" style="font-size: 14px; white-space: nowrap">{{r.v}}</span></div></div></sc-for>
 </div>
 <sc-if value="{{finKmNote}}" hint-placeholder-val="{{ false }}"><p class="lbl" style="padding: 0 4px">{{finKmNote}}</p></sc-if>
 <div class="card" style="gap: 0; padding: 6px 16px 12px">

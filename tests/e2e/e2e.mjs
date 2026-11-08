@@ -203,7 +203,7 @@ const FLOW = [
 ];
 const CHECK = `(()=>{const r=document.querySelector('.md').getBoundingClientRect();const bad=[];
 document.querySelectorAll('.md *').forEach(e=>{const b=e.getBoundingClientRect();if(!b.width)return;if(e.closest('.tabs')||e.closest('[style*="position: absolute"]')||e.closest('svg'))return;if(b.right>r.right+1||b.left<r.left-1)bad.push('FORA '+e.tagName+' '+(e.textContent||'').trim().slice(0,24));});
-document.querySelectorAll('.navb,[role=tab],.pill,.btn,.btn2,.chip,.num,button').forEach(e=>{if(e.scrollWidth>e.clientWidth+1)bad.push('CORTE '+(e.textContent||'').trim().slice(0,24));});
+document.querySelectorAll('.navb,[role=tab],.pill,.btn,.btn2,.chip,.num,button,.grid3 span,.lrow p').forEach(e=>{if(e.scrollWidth>e.clientWidth+1)bad.push('CORTE '+(e.textContent||'').trim().slice(0,24));});
 if(/undefined|NaN/.test(document.querySelector('.md').textContent))bad.push('undefined/NaN');return bad.slice(0,4);})()`;
 for (const W of [320, 360, 390, 412]) {
   const c2 = await browser.newContext({ ...MOBILE, viewport: { width: W, height: 780 } });

@@ -3,7 +3,7 @@
 function tile(k, v, c, path, small) {
   return {
     k: k, v: v, path: path,
-    box: 'display: flex; align-items: center; gap: ' + (small ? '8px' : '12px') + '; padding: ' + (small ? '12px 10px' : '16px 14px') + '; border-radius: 20px; min-width: 0; background: linear-gradient(100deg, ' + alpha(c, 0.22) + ' 0%, rgba(30,27,58,.92) 55%); border: 1.5px solid ' + alpha(c, 0.7) + '; border-left-width: 3px',
+    box: 'display: flex; align-items: center; gap: ' + (small ? '6px' : '12px') + '; padding: ' + (small ? '12px 8px' : '16px 14px') + '; border-radius: 20px; min-width: 0; background: linear-gradient(100deg, ' + alpha(c, 0.22) + ' 0%, rgba(30,27,58,.92) 55%); border: 1.5px solid ' + alpha(c, 0.7) + '; border-left-width: 3px',
     ic: 'color: ' + c + '; display: flex; flex: none'
   };
 }
